@@ -39,16 +39,28 @@ while [ -z "$SETUP_DONE" ]; do
 
 
   ####### checking card type
-  if [ "$FPGACARD" = "N250S" ]; then
-    SNAP_CFG="CONFIG_N250S=y\n""CONFIG_FPGACHIP=xcku060-ffva1156-2-e\n"
-  elif [ "$FPGACARD" = "ADKU3" ]; then
-    SNAP_CFG="CONFIG_ADKU3=y\n""CONFIG_FPGACHIP=xcku060-ffva1156-2-e\n"
-  elif [ "$FPGACARD" = "S121B" ]; then
-    SNAP_CFG="CONFIG_S121B=y\n""CONFIG_FPGACHIP=xcku115-flva1517-2-e\n"
-  else
-    echo "($0) ERROR: FPGACARD is not set correctly. Not generating config files."
-    break
-  fi
+
+  case $FPGACARD in
+    "N250S" )
+      SNAP_CFG="CONFIG_N250S=y\n""CONFIG_FPGACHIP=xcku060-ffva1156-2-e\n"
+      ;;
+    "ADKU3" )
+      SNAP_CFG="CONFIG_ADKU3=y\n""CONFIG_FPGACHIP=xcku060-ffva1156-2-e\n"
+      ;;
+    "S121B" )
+      SNAP_CFG="CONFIG_S121B=y\n""CONFIG_FPGACHIP=xcku115-flva1517-2-e\n"
+      ;;
+    "AD8K5" )
+      SNAP_CFG="CONFIG_AD8K5=y\n""CONFIG_FPGACHIP=xcku115-flva1517-2-e\n"
+      ;;
+    "N250SP" )
+      SNAP_CFG="CONFIG_N250SP=y\n""CONFIG_FPGACHIP=xcku15p-ffva1156-2-i\n"
+      ;;
+    * )
+      echo "($0) ERROR: FPGACARD is not set correctly. Not generating config files."
+      break
+      ;;
+  esac
   SNAP_CFG="$SNAP_CFG""CONFIG_FPGACARD=$FPGACARD\n"
 
 
@@ -147,14 +159,14 @@ while [ -z "$SETUP_DONE" ]; do
   if [ -z "$SIMULATOR" ]; then
     SIMULATOR="xsim"
   fi
-  if [ "$SIMULATOR" = "xsim" ]; then
-    SNAP_CFG="$SNAP_CFG""CONFIG_SIM_XSIM=y\n"
-  elif [ "$SIMULATOR" =  "irun" ]; then
-    SNAP_CFG="$SNAP_CFG""CONFIG_SIM_XSIM=y\n"
-  else
-    echo "($0) ERROR: SIMULATOR $SIMULATOR is not supported by SNAP. Not generating config files."
-    break
-  fi
+  case $SIMULATOR in
+    xsim )            SNAP_CFG="$SNAP_CFG""CONFIG_SIM_XSIM=y\n";;
+    irun )            SNAP_CFG="$SNAP_CFG""CONFIG_SIM_IRUN=y\n";;
+    xcelium )         SNAP_CFG="$SNAP_CFG""CONFIG_SIM_XCELIUM=y\n";;
+    modelsim|questa ) SNAP_CFG="$SNAP_CFG""CONFIG_SIM_QUESTA=y\n";;
+    * )               echo "($0) ERROR: SIMULATOR $SIMULATOR is not supported by SNAP. Not generating config files."
+                      break;;
+  esac
   SNAP_CFG="$SNAP_CFG""CONFIG_SIMULATOR=$SIMULATOR\n"
 
 
