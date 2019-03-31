@@ -187,6 +187,9 @@ module snap_action_shim #(
  wire[063:0] pattern_target_address;
  wire[063:0] pattern_total_number;
  wire[000:0] pattern_memcpy_done;
+ //This done signal just means all commands have been sent. It doesn't mean all transactions done. 
+ //So the application still wait some time. 
+ 
  wire[005:0] wstat,rstat;
  wire[003:0] werr,rerr;
  wire[011:0] axi_snap_status = {wstat,rstat};
@@ -197,6 +200,9 @@ module snap_action_shim #(
  wire[015:0] axi_master_error = {axi_ddr_error,axi_snap_error};
  wire[031:0] snap_context;
  
+ //Not implemented
+ assign axi_ddr_status = 0;
+ assign axi_ddr_error = 0;
 
 //---- registers hub for AXI Lite interface ----
  axi_lite_slave #(
@@ -231,6 +237,8 @@ module snap_action_shim #(
                                 .pattern_total_number  (pattern_total_number  ),//64b 
                       //---- local status ----
                                 .pattern_memcpy_done   (pattern_memcpy_done   ),
+				.axi_master_status     (axi_master_status     ),
+				.axi_master_error      (axi_master_error      ),
                       //---- snap status ----
                                 .i_app_ready           (i_app_ready           ),
                                 .i_action_type         (i_action_type         ),

@@ -129,7 +129,7 @@ static uint32_t action_read(struct snap_card* h, uint32_t addr)
 
 
 /*
- *  Start Action and wait for Idle.
+ *  Wait for SNAP Idle.
  */
 static int action_wait_idle (struct snap_card* h, int timeout, uint64_t* elapsed)
 {
@@ -137,8 +137,6 @@ static int action_wait_idle (struct snap_card* h, int timeout, uint64_t* elapsed
 	uint64_t t_start;   /* time in usec */
 	uint64_t td = 0;	/* Diff time in usec */
 
-	/* FIXME Use struct snap_action and not struct snap_card */
-	snap_action_start ((void*)h);
 
 	/* Wait for Action to go back to Idle */
 	t_start = get_usec();
@@ -158,14 +156,14 @@ static int action_wait_idle (struct snap_card* h, int timeout, uint64_t* elapsed
 static void action_mem_copy (struct snap_card* h,
 					   void* patt_src_base,
 					   void* patt_tgt_base,
-					   size_t patt_size)
+					   size_t patt_size, int wait_cyc)
 {
 	uint32_t reg_data;
 	uint32_t cnt = 0;
 
 	VERBOSE0 (" ------ Memory Copy Start -------- \n");
-	VERBOSE0 (" PATTERN SOURCE ADDR: %p -- SIZE: %d\n", patt_src_base, (int)patt_size);
-	VERBOSE0 (" PATTERN SOURCE ADDR: %p -- SIZE: %d\n", patt_tgt_base, (int)patt_size);
+	VERBOSE0 (" Host Memory SOURCE ADDR: %p -- SIZE: %d(Bytes)\n", patt_src_base, (int)patt_size);
+	VERBOSE0 (" Host Memory TARGET ADDR: %p -- SIZE: %d(Bytes)\n", patt_tgt_base, (int)patt_size);
 
 	VERBOSE0 (" Start register config! \n");
 
@@ -184,19 +182,21 @@ static void action_mem_copy (struct snap_card* h,
 	VERBOSE1 (" Write ACTION_PATT_DEST_ADDR done! \n");
 
 	// transfer data size (in bytes)
-	action_write (h, ACTION_PATT_TOTAL_NUM_L,
+	action_write (h, ACTION_PATT_TOTAL_NUM,
 				  (uint32_t) (((uint64_t) patt_size) & 0xffffffff));
-	action_write (h, ACTION_PATT_TOTAL_NUM_H,
-				  (uint32_t) ((((uint64_t) patt_size) >> 32) & 0xffffffff));
 	VERBOSE1 (" Write ACTION_PATT_TOTAL_NUM done! \n");
+	
+	// how many cycles to wait after memcopy done (in cycles)
+	action_write (h, ACTION_ADD_WAIT_CYCLE,
+				  (uint32_t) (((uint64_t) wait_cyc) & 0xffffffff));
+	VERBOSE1 (" Write ACTION_ADD_WAIT_CYCLE done! \n");
+
 
 	// Start memory copy
-	VERBOSE1 (" Write ACTION_CONTROL for pattern copying! \n");
-	// Write a pulse
-	action_write (h, ACTION_CONTROL_L, 0x00000001);
-	action_write (h, ACTION_CONTROL_H, 0x00000000);
-	action_write (h, ACTION_CONTROL_L, 0x00000000);
-	action_write (h, ACTION_CONTROL_H, 0x00000000);
+	VERBOSE0 (" Write ACTION_CONTROL to start copying! \n");
+	// Write a pulse to start
+	action_write (h, ACTION_CONTROL, 0x00000001);
+	action_write (h, ACTION_CONTROL, 0x00000000);
 
 	// Poll status for memcpy done signal
 	cnt = 0;
@@ -213,13 +213,15 @@ static void action_mem_copy (struct snap_card* h,
 		cnt++;
 	} while (1);//(cnt < 100);
 
-	cnt = 0;
-	do {
-		reg_data = action_read(h, ACTION_STATUS_L);
+//	cnt = 0;
+//	VERBOSE0("Draining ..\n");
 
-		VERBOSE3("Draining Status reg with 0X%X\n", reg_data);
-		cnt++;
-	} while (cnt < 50);
+//	do {
+//		reg_data = action_read(h, ACTION_STATUS_L);
+//
+//		VERBOSE3("Draining Status reg with 0X%X\n", reg_data);
+//		cnt++;
+//	} while (cnt < 50);
 
 	return;
 }
@@ -272,7 +274,8 @@ static int mem_copy (struct snap_card* dnc,
 					int timeout,
 					void* patt_src_base,
 					void* patt_tgt_base,
-					size_t patt_size)
+					size_t patt_size,
+					int wait_cyc)
 {
 	int rc;
 	uint64_t td;
@@ -280,7 +283,7 @@ static int mem_copy (struct snap_card* dnc,
 	rc = 0;
 
 	action_mem_copy (dnc, patt_src_base, patt_tgt_base, 
-			patt_size);
+			patt_size, wait_cyc);
 	VERBOSE1 ("Wait for idle\n");
 	rc = action_wait_idle (dnc, timeout, &td);
 	VERBOSE1 ("Card in idle\n");
@@ -310,12 +313,14 @@ static struct snap_action* get_action (struct snap_card* handle,
 
 static void usage (const char* prog)
 {
-	VERBOSE0 ("SNAP String Match (Regular Expression Match) Tool.\n");
+	VERBOSE0 ("SNAP Simple Verilog example: hdl_helloworld.\n");
 	VERBOSE0 ("Usage: %s\n"
 			  "	-h, --help		prints usage information\n"
 			  "	-v, --verbose		verbose mode\n"
 			  "	-C, --card <cardno>     card to be used for operation\n"
 			  "	-V, --version\n"
+			  "	-w, --wait_cyc          cycles to wait after memcopy done. must >= 1\n"
+			  "	-s, --size              copy size: multiples of 4KB. (-s1 means copy 4KB)\n"
 //			  "	-q, --quiet		quiece output\n"
 			  "	-t, --timeout		Timeout after N sec (default 1 sec)\n"
 			  "	-I, --irq		Enable Action Done Interrupt (default No Interrupts)\n"
@@ -335,8 +340,7 @@ int main (int argc, char* argv[])
 	struct snap_action* act = NULL;
 	unsigned long ioctl_data;
 	int patt_size = 4096*10;
-	void* patt_src_base = alloc_mem(64, patt_size);
-	void* patt_tgt_base = alloc_mem(64, patt_size);
+	int wait_cyc = 32;
 
 	while (1) {
 		int option_index = 0;
@@ -347,10 +351,12 @@ int main (int argc, char* argv[])
 			{ "version",     no_argument,	    NULL, 'V' },
 			{ "quiet",       no_argument,	    NULL, 'q' },
 			{ "timeout",     required_argument, NULL, 't' },
+			{ "size",        required_argument, NULL, 's' },
+			{ "wait_cyc",        required_argument, NULL, 'w' },
 			{ "irq",	  no_argument,	   NULL, 'I' },
 			{ 0,		  no_argument,	   NULL, 0   },
 		};
-		cmd = getopt_long (argc, argv, "C:t:IqvVh",
+		cmd = getopt_long (argc, argv, "C:t:s:w:IqvVh",
 						   long_options, &option_index);
 
 		if (cmd == -1) { /* all params processed ? */
@@ -378,6 +384,14 @@ int main (int argc, char* argv[])
 			timeout = strtol (optarg, (char**)NULL, 0); /* in sec */
 			break;
 
+		case 's':
+			patt_size = 4096*strtol (optarg, (char**)NULL, 0); /* in bytes */
+			break;
+
+		case 'w':
+			wait_cyc = strtol (optarg, (char**)NULL, 0); /* in cycles */
+			break;
+
 		case 'I':	  /* irq */
 			attach_flags = SNAP_ACTION_DONE_IRQ | SNAP_ATTACH_IRQ;
 			break;
@@ -388,6 +402,9 @@ int main (int argc, char* argv[])
 		}
 		
 	}  // while(1)
+
+	void* patt_src_base = alloc_mem(64, patt_size);
+	void* patt_tgt_base = alloc_mem(64, patt_size);
 
 	VERBOSE2 ("Open Card: %d\n", card_no);
 	sprintf (device, "/dev/cxl/afu%d.0s", card_no);
@@ -402,24 +419,6 @@ int main (int argc, char* argv[])
 	/* Read Card Capabilities */
 	snap_card_ioctl (dn, GET_CARD_TYPE, (unsigned long)&ioctl_data);
 	VERBOSE1 ("SNAP on ");
-
-	//	switch (ioctl_data) {
-	//	case  0:
-	//		VERBOSE1 ("ADKU3");
-	//		break;
-	//
-	//	case  1:
-	//		VERBOSE1 ("N250S");
-	//		break;
-	//
-	//	case 16:
-	//		VERBOSE1 ("N250SP");
-	//		break;
-	//
-	//	default:
-	//		VERBOSE1 ("Unknown");
-	//		break;
-	//	}
 
 	//snap_card_ioctl (dn, GET_SDRAM_SIZE, (unsigned long)&ioctl_data);
 	//VERBOSE1 (" Card, %d MB of Card Ram avilable.\n", (int)ioctl_data);
@@ -445,10 +444,11 @@ int main (int argc, char* argv[])
 	rc = mem_copy (dn, timeout,
 			patt_src_base, 
 			patt_tgt_base,
-			patt_size
+			patt_size,
+			wait_cyc
 			);
 
-	VERBOSE0 ("Check mem.\n");
+	VERBOSE0 ("Check memory buffer.\n");
 	if (mem_check (patt_src_base, patt_tgt_base, patt_size)) {
 		VERBOSE0 ("Check FAILED!\n");
 	} else {
@@ -459,12 +459,13 @@ int main (int argc, char* argv[])
 
 __exit1:
 	// Unmap AFU MMIO registers, if previously mapped
-	VERBOSE2 ("Free Card Handle: %p\n", dn);
+	VERBOSE0 ("Free Card Handle: %p\n", dn);
 	snap_card_free (dn);
+
 
 	free_mem(patt_src_base);
 	free_mem(patt_tgt_base);
 
-	VERBOSE1 ("End of Test rc: %d\n", rc);
+	VERBOSE0 ("End of Test rc: %d\n", rc);
 	return rc;
 } // main end

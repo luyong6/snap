@@ -32,7 +32,6 @@ module axi_lite_slave #(
                       output     [01:0] s_axi_rresp           ,
                       input             s_axi_rready          ,
                       output reg        s_axi_rvalid          ,
-
                       //---- local control ----
                       output            pattern_memcpy_enable ,
                       output     [63:0] pattern_source_address,
@@ -41,6 +40,8 @@ module axi_lite_slave #(
 
                       //---- local status ----
                       input             pattern_memcpy_done   ,
+		      input      [23:0] axi_master_status     ,
+		      input      [15:0] axi_master_error      ,
 
                       //---- snap status ----
                       input             i_app_ready           ,
@@ -51,13 +52,17 @@ module axi_lite_slave #(
             
 
 //---- declarations ----
+// For 32bit write data.
  wire[31:0] write_data_snap_status;
  wire[31:0] write_data_snap_int_enable;
  wire[31:0] write_data_snap_context;
  wire[31:0] write_data_control;
- wire[63:0] write_data_pattern_source_address;
- wire[63:0] write_data_pattern_target_address;
+ wire[31:0] write_data_pattern_source_address_h;
+ wire[31:0] write_data_pattern_source_address_l;
+ wire[31:0] write_data_pattern_target_address_h;
+ wire[31:0] write_data_pattern_target_address_l;
  wire[31:0] write_data_pattern_total_number;
+ wire[31:0] write_data_add_wait_cycle;
  reg [31:0] write_address;
  wire[31:0] wr_mask;
  wire[31:0] REG_snap_status_rd;
@@ -67,6 +72,8 @@ module axi_lite_slave #(
  reg        app_start_q;
  reg        reg_snap_status_bit0;
  
+ wire       delayed_memcpy_done;
+ reg [31:0] additional_cycle_counter;
  
  ///////////////////////////////////////////////////
  //***********************************************//
@@ -76,11 +83,13 @@ module axi_lite_slave #(
  /**/   reg [31:0] REG_snap_status           ;  /**/
  /**/   reg [31:0] REG_snap_int_enable       ;  /**/
  /**/   reg [31:0] REG_snap_context          ;  /**/
- /**/   reg [63:0] REG_control               ;  /**/
+ /*            Action defined                     */  
+ /**/   reg [63:0] REG_status                ;  /**/
+ /**/   reg [31:0] REG_control               ;  /**/
  /**/   reg [63:0] REG_pattern_source_address;  /**/
  /**/   reg [63:0] REG_pattern_target_address;  /**/
- /**/   reg [63:0] REG_pattern_total_number  ;  /**/
- /**/   reg [63:0] REG_status                ;  /**/
+ /**/   reg [31:0] REG_add_wait_cycle        ;  /**/
+ /**/   reg [31:0] REG_pattern_total_number  ;  /**/
  //                                               //
  //-----------------------------------------------//
  //                                               //
@@ -101,6 +110,7 @@ module axi_lite_slave #(
            ADDR_PATTERN_SOURCE_ADDRESS_H = 32'h4C,
            ADDR_PATTERN_TARGET_ADDRESS_L = 32'h50,
            ADDR_PATTERN_TARGET_ADDRESS_H = 32'h54,
+           ADDR_ADD_WAIT_CYCLE           = 32'h58,
            ADDR_PATTERN_TOTAL_NUMBER     = 32'h68;
 
 
@@ -110,7 +120,7 @@ module axi_lite_slave #(
  assign pattern_memcpy_enable  = REG_control[0];
  assign pattern_source_address = REG_pattern_source_address;
  assign pattern_target_address = REG_pattern_target_address;
- assign pattern_total_number   = REG_pattern_total_number;
+ assign pattern_total_number   = {32'b0,REG_pattern_total_number};
  assign o_snap_context         = REG_snap_context;
 
 //---- read-only registers assigned by local signals ----
@@ -118,7 +128,7 @@ module axi_lite_slave #(
    begin
      REG_status <= {
                     63'd0,
-                    pattern_memcpy_done
+                    delayed_memcpy_done
                    };
    end
 
@@ -160,9 +170,12 @@ module axi_lite_slave #(
  assign write_data_snap_int_enable        = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_snap_int_enable)}; 
  assign write_data_snap_context           = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_snap_context)}; 
  assign write_data_control                = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_control)}; 
- assign write_data_pattern_source_address = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_source_address)};     
- assign write_data_pattern_target_address = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_target_address)};     
+ assign write_data_pattern_source_address_l = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_source_address[31:0])};     
+ assign write_data_pattern_source_address_h = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_source_address[63:32])};     
+ assign write_data_pattern_target_address_l = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_target_address[31:0])};     
+ assign write_data_pattern_target_address_h = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_target_address[63:32])};     
  assign write_data_pattern_total_number   = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_pattern_total_number)}; 
+ assign write_data_add_wait_cycle              = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_add_wait_cycle)}; 
 
 //---- write registers ----
  always@(posedge clk or negedge rst_n)
@@ -171,41 +184,66 @@ module axi_lite_slave #(
        REG_snap_status            <= 32'd0;
        REG_snap_int_enable        <= 32'd0;
        REG_snap_context           <= 32'd0;
-       REG_control                <= 64'd0; 
+
+       REG_control                <= 32'd0; 
        REG_pattern_source_address <= 64'd0;  
        REG_pattern_target_address <= 64'd0; 
-       REG_pattern_total_number   <= 64'd0; 
+       REG_pattern_total_number   <= 32'd0; 
+       REG_add_wait_cycle         <= 32'h20;
      end
    else if(s_axi_wvalid & s_axi_wready)
      case(write_address)
-       ADDR_SNAP_STATUS              : REG_snap_status <= write_data_snap_status;
-       ADDR_SNAP_INT_ENABLE          : REG_snap_int_enable <= write_data_snap_int_enable;
-       ADDR_SNAP_CONTEXT             : REG_snap_context <= write_data_snap_context;
-       ADDR_CONTROL                  : REG_control                <= 
-                                           {32'd0,write_data_control};
+       ADDR_SNAP_STATUS              : REG_snap_status        <= write_data_snap_status;
+       ADDR_SNAP_INT_ENABLE          : REG_snap_int_enable    <= write_data_snap_int_enable;
+       ADDR_SNAP_CONTEXT             : REG_snap_context       <= write_data_snap_context;
+       ADDR_CONTROL                  : REG_control            <= write_data_control;
 
-
-       ADDR_PATTERN_SOURCE_ADDRESS_H : REG_pattern_source_address <= 
-                                           {write_data_pattern_source_address,REG_pattern_source_address[31:00]};
 
        ADDR_PATTERN_SOURCE_ADDRESS_L : REG_pattern_source_address <= 
-                                           {REG_pattern_source_address[63:32],write_data_pattern_source_address};
+                                           {REG_pattern_source_address[63:32],write_data_pattern_source_address_l};
 
-       ADDR_PATTERN_TARGET_ADDRESS_H : REG_pattern_target_address <= 
-                                           {write_data_pattern_target_address,REG_pattern_target_address[31:00]};
+       ADDR_PATTERN_SOURCE_ADDRESS_H : REG_pattern_source_address <= 
+                                           {write_data_pattern_source_address_h,REG_pattern_source_address[31:00]};
 
        ADDR_PATTERN_TARGET_ADDRESS_L : REG_pattern_target_address <= 
-                                           {REG_pattern_target_address[63:32],write_data_pattern_target_address};
+                                           {REG_pattern_target_address[63:32],write_data_pattern_target_address_l};
 
-       ADDR_PATTERN_TOTAL_NUMBER     : REG_pattern_total_number   <= 
-                                           {32'd0,write_data_pattern_total_number};
+       ADDR_PATTERN_TARGET_ADDRESS_H : REG_pattern_target_address <= 
+                                           {write_data_pattern_target_address_h,REG_pattern_target_address[31:00]};
+
+       ADDR_PATTERN_TOTAL_NUMBER     : REG_pattern_total_number   <= write_data_pattern_total_number;
+
+       ADDR_ADD_WAIT_CYCLE           : REG_add_wait_cycle         <= write_data_add_wait_cycle; 
 
        default :;
      endcase
 
+// REG_status[0] 
+// The actual memcpy_done + delayed cycles;
+assign actual_memcpy_done = pattern_memcpy_done & axi_master_status[10] & axi_master_status[4];
+//pattern_memcpy_done means all commands have been sent to Host AXI bus
+//[10] means fifo_wbuf is empty
+//[4]  means fifo_rbuf is empty
 
 
+always @(posedge clk or negedge rst_n) begin
+    if (~rst_n) begin
+        additional_cycle_counter <= 32'h20;
+    end
+    else if (pattern_memcpy_enable) begin
+	additional_cycle_counter <= REG_add_wait_cycle;
+    end
+    else if (actual_memcpy_done == 1'b1 && additional_cycle_counter > 0) begin
+	additional_cycle_counter <= additional_cycle_counter - 1;
+    end
+end
+
+assign delayed_memcpy_done = (additional_cycle_counter == 0);	
+    	
 // All bit[2:0] from control (0x38) is 0 means idle
+// snap_wait_completed use this bit to make sure that Action is idle. 
+// in this hdl_helloworld example, REG_control has has 1 bit in use. 
+// This is different to "done".
 assign idle = ~(|(REG_control[2:0]));
 
 // Prepare status for SNAP status register

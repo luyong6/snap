@@ -26,16 +26,18 @@
 #define ACTION_STATUS_L                0x30
 #define ACTION_STATUS_H                0x34
 
-#define ACTION_CONTROL_L               0x38
-#define ACTION_CONTROL_H               0x3C
+#define ACTION_CONTROL                 0x38
 
+//Source Address
 #define ACTION_PATT_INIT_ADDR_L        0x48
 #define ACTION_PATT_INIT_ADDR_H        0x4C
+//Target Address
 #define ACTION_PATT_DEST_ADDR_L        0x50
 #define ACTION_PATT_DEST_ADDR_H        0x54
-
-#define ACTION_PATT_TOTAL_NUM_L        0x68
-#define ACTION_PATT_TOTAL_NUM_H        0x6C
+//Size number (in bytes)
+#define ACTION_PATT_TOTAL_NUM          0x68
+//Additional waiting time (in cycles)
+#define ACTION_ADD_WAIT_CYCLE          0x58
 
 
 #endif	/* __HDL_HELLOWORLD__ */
