@@ -252,7 +252,7 @@ wire               kernel_s_axi_snap_rvalid [KERNEL_NUM-1:0];
 
 genvar i;
 generate
-for (i = 0; i < KERNEL_NUM; i = i + 1) {
+for (i = 0; i < KERNEL_NUM; i = i + 1) begin:k_inst
 
 example_kernel #( 
            .ENGINE_AXI_S_LITE_DATA_WIDTH    ( 32 ),
@@ -262,7 +262,7 @@ example_kernel #(
            .ENGINE_AXI_MM_ADDR_WIDTH    ( 64 ),
            .ENGINE_AXI_MM_DATA_WIDTH    ( 64 ),
            .ENGINE_AXI_MM_AWUSER_WIDTH  ( C_M_AXI_HOST_MEM_AWUSER_WIDTH ),
-           .ENGINE_AXI_MM_ARUSER_WIDTH  ( C_M_AXI_HOST_MEM_ARUSER_WIDTH ),
+           .ENGINE_AXI_MM_ARUSER_WIDTH  ( C_M_AXI_HOST_MEM_ARUSER_WIDTH )
           ) kernel (
                         .clk                    (clk                    ),
                         .rst_n                  (rst_n                  ),
@@ -349,14 +349,15 @@ example_kernel #(
                         .i_action_version         (i_action_version                   ),
                         .o_complete               (kernel_o_complete[i]               )
                        );
-}
+end
+endgenerate
 
 //8-to-1 AXI MM interconnect
 host_axi_interconnect_0 axi_mm_X (
-  .INTERCONNECT_ACLK(clk)(clk),
+  .INTERCONNECT_ACLK(clk),
   .INTERCONNECT_ARESETN(rst_n),
-  .S00_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[00])( ),
-  .S00_AXI_ACLK (kernel_m_axi_snap_aclk[00])(clk),
+  .S00_AXI_ARESET_OUT_N ( ),
+  .S00_AXI_ACLK (clk),
   .S00_AXI_AWID (kernel_m_axi_snap_awid[00]),
   .S00_AXI_AWADDR (kernel_m_axi_snap_awaddr[00]),
   .S00_AXI_AWLEN (kernel_m_axi_snap_awlen[00]),
@@ -394,8 +395,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S00_AXI_RLAST (kernel_m_axi_snap_rlast[00]),
   .S00_AXI_RVALID (kernel_m_axi_snap_rvalid[00]),
   .S00_AXI_RREADY (kernel_m_axi_snap_rready[00]),
-  .S01_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[01])( ),
-  .S01_AXI_ACLK (kernel_m_axi_snap_aclk[01])(clk),
+  .S01_AXI_ARESET_OUT_N ( ),
+  .S01_AXI_ACLK (clk),
   .S01_AXI_AWID (kernel_m_axi_snap_awid[01]),
   .S01_AXI_AWADDR (kernel_m_axi_snap_awaddr[01]),
   .S01_AXI_AWLEN (kernel_m_axi_snap_awlen[01]),
@@ -433,8 +434,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S01_AXI_RLAST (kernel_m_axi_snap_rlast[01]),
   .S01_AXI_RVALID (kernel_m_axi_snap_rvalid[01]),
   .S01_AXI_RREADY (kernel_m_axi_snap_rready[01]),
-  .S02_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[02])( ),
-  .S02_AXI_ACLK (kernel_m_axi_snap_aclk[02])(clk),
+  .S02_AXI_ARESET_OUT_N ( ),
+  .S02_AXI_ACLK (clk),
   .S02_AXI_AWID (kernel_m_axi_snap_awid[02]),
   .S02_AXI_AWADDR (kernel_m_axi_snap_awaddr[02]),
   .S02_AXI_AWLEN (kernel_m_axi_snap_awlen[02]),
@@ -472,8 +473,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S02_AXI_RLAST (kernel_m_axi_snap_rlast[02]),
   .S02_AXI_RVALID (kernel_m_axi_snap_rvalid[02]),
   .S02_AXI_RREADY (kernel_m_axi_snap_rready[02]),
-  .S03_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[03])( ),
-  .S03_AXI_ACLK (kernel_m_axi_snap_aclk[03])(clk),
+  .S03_AXI_ARESET_OUT_N ( ),
+  .S03_AXI_ACLK (clk),
   .S03_AXI_AWID (kernel_m_axi_snap_awid[03]),
   .S03_AXI_AWADDR (kernel_m_axi_snap_awaddr[03]),
   .S03_AXI_AWLEN (kernel_m_axi_snap_awlen[03]),
@@ -511,8 +512,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S03_AXI_RLAST (kernel_m_axi_snap_rlast[03]),
   .S03_AXI_RVALID (kernel_m_axi_snap_rvalid[03]),
   .S03_AXI_RREADY (kernel_m_axi_snap_rready[03]),
-  .S04_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[04])( ),
-  .S04_AXI_ACLK (kernel_m_axi_snap_aclk[04])(clk),
+  .S04_AXI_ARESET_OUT_N ( ),
+  .S04_AXI_ACLK (clk),
   .S04_AXI_AWID (kernel_m_axi_snap_awid[04]),
   .S04_AXI_AWADDR (kernel_m_axi_snap_awaddr[04]),
   .S04_AXI_AWLEN (kernel_m_axi_snap_awlen[04]),
@@ -550,8 +551,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S04_AXI_RLAST (kernel_m_axi_snap_rlast[04]),
   .S04_AXI_RVALID (kernel_m_axi_snap_rvalid[04]),
   .S04_AXI_RREADY (kernel_m_axi_snap_rready[04]),
-  .S05_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[05])( ),
-  .S05_AXI_ACLK (kernel_m_axi_snap_aclk[05])(clk),
+  .S05_AXI_ARESET_OUT_N ( ),
+  .S05_AXI_ACLK (clk),
   .S05_AXI_AWID (kernel_m_axi_snap_awid[05]),
   .S05_AXI_AWADDR (kernel_m_axi_snap_awaddr[05]),
   .S05_AXI_AWLEN (kernel_m_axi_snap_awlen[05]),
@@ -589,8 +590,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S05_AXI_RLAST (kernel_m_axi_snap_rlast[05]),
   .S05_AXI_RVALID (kernel_m_axi_snap_rvalid[05]),
   .S05_AXI_RREADY (kernel_m_axi_snap_rready[05]),
-  .S06_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[06])( ),
-  .S06_AXI_ACLK (kernel_m_axi_snap_aclk[06])(clk),
+  .S06_AXI_ARESET_OUT_N ( ),
+  .S06_AXI_ACLK (clk),
   .S06_AXI_AWID (kernel_m_axi_snap_awid[06]),
   .S06_AXI_AWADDR (kernel_m_axi_snap_awaddr[06]),
   .S06_AXI_AWLEN (kernel_m_axi_snap_awlen[06]),
@@ -628,8 +629,8 @@ host_axi_interconnect_0 axi_mm_X (
   .S06_AXI_RLAST (kernel_m_axi_snap_rlast[06]),
   .S06_AXI_RVALID (kernel_m_axi_snap_rvalid[06]),
   .S06_AXI_RREADY (kernel_m_axi_snap_rready[06]),
-  .S07_AXI_ARESET_OUT_N (kernel_m_axi_snap_areset_out_n[07])( ),
-  .S07_AXI_ACLK (kernel_m_axi_snap_aclk[07])(clk),
+  .S07_AXI_ARESET_OUT_N ( ),
+  .S07_AXI_ACLK (clk),
   .S07_AXI_AWID (kernel_m_axi_snap_awid[07]),
   .S07_AXI_AWADDR (kernel_m_axi_snap_awaddr[07]),
   .S07_AXI_AWLEN (kernel_m_axi_snap_awlen[07]),
@@ -710,8 +711,8 @@ host_axi_interconnect_0 axi_mm_X (
 
 //1-to-8 AXI-lite crossbar (demux)
 host_axi_lite_crossbar_0 axi_lite_X (
-  .aclk,
-  .aresetn,
+  .aclk(clk),
+  .aresetn(rst_n),
   .s_axi_awaddr( s_axi_snap_awaddr ),
   .s_axi_awprot( s_axi_snap_awprot ),
   .s_axi_awvalid( s_axi_snap_awvalid ),

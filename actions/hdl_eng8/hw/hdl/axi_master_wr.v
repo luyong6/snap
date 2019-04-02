@@ -4,7 +4,7 @@ module axi_master_wr #(
                        parameter ID_WIDTH      = 1,
                        parameter ADDR_WIDTH    = 64,
                        parameter DATA_WIDTH    = 64,
-                       parameter AWUSER_WIDTH  = 8,
+                       parameter AWUSER_WIDTH  = 8
                        )
                       (
                        input                            clk           ,
@@ -73,7 +73,7 @@ module axi_master_wr #(
 //---- signals for AXI advanced features ----
  assign m_axi_awid    = 0;
  assign m_axi_wid     = 0;
- assign m_axi_awsize  = 3'd6; // 2^6=512
+ assign m_axi_awsize  = 3'd3; // 2^3=8 Bytes
  assign m_axi_awburst = 2'd1; // INCR mode for memory access
  assign m_axi_awcache = 4'd3; // Normal Non-cacheable Bufferable
  assign m_axi_awuser  = i_snap_context[AWUSER_WIDTH - 1:0]; 

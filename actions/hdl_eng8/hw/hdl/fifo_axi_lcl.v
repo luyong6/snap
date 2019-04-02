@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`define DEPTH 256
+`define D_W 8
 module fifo_axi_lcl(
                     input             clk  ,
                     input             rst_n, 
@@ -27,35 +29,35 @@ module fifo_axi_lcl(
 
 
              
- reg [04:00] i_cnt     ;
- reg [04:00] o_cnt     ;
- wire[04:00] cnt       ;
+ reg [`D_W-1:0] i_cnt     ;
+ reg [`D_W-1:0] o_cnt     ;
+ wire[`D_W-1:0] cnt       ;
  wire        full      ;
 
 
- parameter IH_LIM = 5'd26,
-           IL_LIM = 5'd16,
-           OH_LIM = 5'd16,
-           OL_LIM = 5'd4;
+ parameter IH_LIM = `DEPTH-6,
+           IL_LIM = `DEPTH/2,
+           OH_LIM = `DEPTH/2,
+           OL_LIM = 4;
            
            
 //---input data count---
  always@(posedge clk or negedge rst_n)
    if(~rst_n) 
-     i_cnt <= 5'b0;
+     i_cnt <= 0;
    else if(clr | olast)  //hold the last value, i.e. the number of frame data till they're all read
-     i_cnt <= 5'b0;
+     i_cnt <= 0;
    else if(den)
-     i_cnt <= i_cnt + 5'b1;
+     i_cnt <= i_cnt + `D_W'd1;
      
 //---output data count---
  always@(posedge clk or negedge rst_n)
    if(~rst_n)      
-     o_cnt <= 5'b0;
+     o_cnt <= 0;
    else if(clr | olast)  //clear the counter when all frame data are read
-     o_cnt <= 5'b0;
+     o_cnt <= 0;
    else if(rdrq)
-     o_cnt <= o_cnt + 5'b1;       
+     o_cnt <= o_cnt + `D_W'd1;       
 
 //---flush the rest of the frame data out---
  always@(posedge clk or negedge rst_n)
@@ -98,7 +100,7 @@ module fifo_axi_lcl(
      ordy <= 1'b1; 
 
 //---the last-data output indicator---
- assign olast = rdrq & flush & (o_cnt == i_cnt - 5'd1);
+ assign olast = rdrq & flush & (o_cnt == i_cnt - `D_W'd1);
  
 //---indicate overflowing---
  always@(posedge clk or negedge rst_n)
@@ -119,7 +121,7 @@ module fifo_axi_lcl(
      udfl <= 1'b1; 
      
 //---buffering FIFO---
- fifo_sync_32_64i64o mfifo_buf (
+ fifo_sync_256_64i64o mfifo_buf (
   .clk(clk), // input clk
   .rst(~rst_n | clr), // input rst
   .din(din), // input [511 : 0] din

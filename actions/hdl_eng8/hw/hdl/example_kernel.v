@@ -24,7 +24,7 @@ module example_kernel #(
            parameter ENGINE_AXI_MM_ADDR_WIDTH    = 64,
            parameter ENGINE_AXI_MM_DATA_WIDTH    = 64,
            parameter ENGINE_AXI_MM_AWUSER_WIDTH  = 8,
-           parameter ENGINE_AXI_MM_ARUSER_WIDTH  = 8,
+           parameter ENGINE_AXI_MM_ARUSER_WIDTH  = 8
 )(
                         input              clk                      ,
                         input              rst_n                    ,
@@ -254,7 +254,7 @@ module example_kernel #(
                 .ID_WIDTH     (ENGINE_AXI_MM_ID_WIDTH     ),
                 .ADDR_WIDTH   (ENGINE_AXI_MM_ADDR_WIDTH   ),
                 .DATA_WIDTH   (ENGINE_AXI_MM_DATA_WIDTH   ),
-                .AWUSER_WIDTH (ENGINE_AXI_MM_AWUSER_WIDTH ),
+                .AWUSER_WIDTH (ENGINE_AXI_MM_AWUSER_WIDTH )
                 ) maxi_master_wr(
                                 .clk           (clk                ),
                                 .rst_n         (rst_n),
@@ -302,7 +302,7 @@ module example_kernel #(
                 .ID_WIDTH     (ENGINE_AXI_MM_ID_WIDTH     ),
                 .ADDR_WIDTH   (ENGINE_AXI_MM_ADDR_WIDTH   ),
                 .DATA_WIDTH   (ENGINE_AXI_MM_DATA_WIDTH   ),
-                .ARUSER_WIDTH (ENGINE_AXI_MM_ARUSER_WIDTH ),
+                .ARUSER_WIDTH (ENGINE_AXI_MM_ARUSER_WIDTH )
                 ) maxi_master_rd(
                                 .clk           (clk                ),
                                 .rst_n         (rst_n),

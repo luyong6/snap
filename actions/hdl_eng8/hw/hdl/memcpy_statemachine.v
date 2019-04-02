@@ -27,7 +27,7 @@ module memcpy_statemachine(
 
  parameter IDLE   = 7'h01, 
            INIT   = 7'h02,
-           N4KB   = 7'h04,
+           N2KB   = 7'h04,
            CLEN   = 7'h08,
            START  = 7'h10,
            INPROC = 7'h20,
@@ -41,6 +41,7 @@ module memcpy_statemachine(
    else 
      cstate <= nstate;
 
+// memcopy 8B interface. Max burst length is 256, that is 2KB
  always@* 
    case(cstate)
      IDLE      : 
@@ -52,8 +53,8 @@ module memcpy_statemachine(
                    if (memcpy_len == 64'd0)
                      nstate = IDLE;
                    else
-                     nstate = N4KB;
-     N4KB      :
+                     nstate = N2KB;
+     N2KB      :
                      nstate = CLEN;
      CLEN      :
                    if (~burst_busy)
@@ -71,7 +72,7 @@ module memcpy_statemachine(
                    if (last_burst)
                      nstate = IDLE;
                    else 
-                     nstate = N4KB;
+                     nstate = N2KB;
      default      :
                      nstate = IDLE;
      endcase
@@ -91,7 +92,7 @@ module memcpy_statemachine(
      current_addr <= 64'd0;
    else 
      case (cstate)
-       INIT : current_addr <= {memcpy_addr[63:6],6'd0};   // previous 64B boundary
+       INIT : current_addr <= {memcpy_addr[63:3],3'd0};   // previous 8B boundary
        DONE : current_addr <= next_boundary;
      endcase
 
@@ -102,13 +103,13 @@ module memcpy_statemachine(
    else 
      case (cstate)
        CLEN : 
-          if (next_boundary[63:12]~^end_boundary[63:12])
-            current_len <= 8'd64 - current_addr[11:6];   // 64*64=4KB, 64B=512b
+          if (next_boundary[63:11]~^end_boundary[63:11])
+            current_len <= 9'd256 - current_addr[10:3];   // 256*8B=2KB,
           else
-            current_len <= end_aligned[13:6] - current_addr[13:6];  // at least do a burst_len=1
+            current_len <= end_aligned[10:3] - current_addr[10:3];  // at least do a burst_len=1?
      endcase
 
-//---- next 4KB boundary ----
+//---- next 2KB boundary ----
  always@(posedge clk or negedge rst_n) 
    if (~rst_n)
      begin
@@ -118,11 +119,11 @@ module memcpy_statemachine(
      end
    else 
      case (cstate)
-       N4KB : 
+       N2KB : 
          begin
-           next_boundary <= {current_addr[63:12] + 52'd1, 12'd0};
-           end_boundary <= (~|end_addr[11:0])? end_addr : {end_addr[63:12] + 52'd1, 12'd0};   // next immediate 4KB
-           end_aligned <= (~|end_addr[5:0])? end_addr : {end_addr[63:6] + 58'd1, 6'd0};  // next immediate 64B
+           next_boundary <= {current_addr[63:11] + 53'd1, 11'd0};
+           end_boundary <= (~|end_addr[10:0])? end_addr : {end_addr[63:11] + 53'd1, 11'd0};   // next immediate 2KB
+           end_aligned <= (~|end_addr[2:0])? end_addr : {end_addr[63:3] + 61'd1, 3'd0};  // next immediate 8B
          end
      endcase
 
@@ -133,7 +134,7 @@ module memcpy_statemachine(
    else 
      case (cstate)
        CLEN : 
-          if (&(next_boundary[63:12]~^end_boundary[63:12]))
+          if (&(next_boundary[63:11]~^end_boundary[63:11]))
             last_burst <= 1'b1;
           else
             last_burst <= 1'b0;

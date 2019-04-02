@@ -4,7 +4,7 @@ module axi_master_rd #(
                        parameter ID_WIDTH      = 1,
                        parameter ADDR_WIDTH    = 64,
                        parameter DATA_WIDTH    = 64,
-                       parameter ARUSER_WIDTH  = 8,
+                       parameter ARUSER_WIDTH  = 8
                        )
                       (
                        input                          clk           ,
@@ -78,7 +78,7 @@ module axi_master_rd #(
 
 //---- signals for AXI advanced features ----
  assign m_axi_arid    = 0;
- assign m_axi_arsize  = 3'd6; // 2^6=512
+ assign m_axi_arsize  = 3'd3; // 2^3=8 Bytes
  assign m_axi_arburst = 2'd1; // INCR mode for memory access
  assign m_axi_arcache = 4'd3; // Normal Non-cacheable Bufferable
  assign m_axi_aruser  = i_snap_context[ARUSER_WIDTH - 1:0]; 
