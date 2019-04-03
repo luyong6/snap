@@ -172,7 +172,7 @@ module snap_action_shim #(
                         input      [31:0]  i_action_version
                        );
 
-wire               kernel_o_complete [KERNEL_NUM-1:0];
+wire      [KERNEL_NUM-1:0]         kernel_o_complete ;
 
 
                                                            // AXI write address channel
@@ -224,30 +224,41 @@ wire                                                kernel_m_axi_snap_rlast [KER
 wire                                                kernel_m_axi_snap_rvalid [KERNEL_NUM-1:0];
 
 //////////////////////////////////////////////////////////////////////////
+// AXI lite. Has KERNEL_NUM + 1 slaves
+//
+// signal [0] ----> kernel 0 --> 0x200
+// signal [1] ----> kernel 1 --> 0x300
+// signal [2] ----> kernel 2 --> 0x400
+// signal [3] ----> kernel 3 --> 0x500
+// signal [4] ----> kernel 4 --> 0x600
+// signal [5] ----> kernel 5 --> 0x700
+// signal [6] ----> kernel 6 --> 0x800
+// signal [7] ----> kernel 7 --> 0x900
+// signal [KERNEL_NUM] ------> global registers (0x000-0x0FF)
 
-wire               kernel_s_axi_snap_awready [KERNEL_NUM-1:0];
-wire [31:0]        kernel_s_axi_snap_awaddr [KERNEL_NUM-1:0];
-wire [2:0]         kernel_s_axi_snap_awprot [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_awvalid [KERNEL_NUM-1:0];
+wire               kernel_s_axi_snap_awready [KERNEL_NUM:0];
+wire [31:0]        kernel_s_axi_snap_awaddr [KERNEL_NUM:0];
+wire [2:0]         kernel_s_axi_snap_awprot [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_awvalid [KERNEL_NUM:0];
                         // axi write data channel
-wire               kernel_s_axi_snap_wready [KERNEL_NUM-1:0];
-wire [31:0]        kernel_s_axi_snap_wdata [KERNEL_NUM-1:0];
-wire [3:0]         kernel_s_axi_snap_wstrb [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_wvalid [KERNEL_NUM-1:0];
+wire               kernel_s_axi_snap_wready [KERNEL_NUM:0];
+wire [31:0]        kernel_s_axi_snap_wdata [KERNEL_NUM:0];
+wire [3:0]         kernel_s_axi_snap_wstrb [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_wvalid [KERNEL_NUM:0];
                         // AXI response channel
-wire [1:0]         kernel_s_axi_snap_bresp [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_bvalid [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_bready [KERNEL_NUM-1:0];
+wire [1:0]         kernel_s_axi_snap_bresp [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_bvalid [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_bready [KERNEL_NUM:0];
                         // AXI read address channel
-wire               kernel_s_axi_snap_arready [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_arvalid [KERNEL_NUM-1:0];
-wire [31:0]        kernel_s_axi_snap_araddr [KERNEL_NUM-1:0];
-wire [2:0]         kernel_s_axi_snap_arprot [KERNEL_NUM-1:0];
+wire               kernel_s_axi_snap_arready [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_arvalid [KERNEL_NUM:0];
+wire [31:0]        kernel_s_axi_snap_araddr [KERNEL_NUM:0];
+wire [2:0]         kernel_s_axi_snap_arprot [KERNEL_NUM:0];
                         // AXI read data channel
-wire [31:0]        kernel_s_axi_snap_rdata [KERNEL_NUM-1:0];
-wire [1:0]         kernel_s_axi_snap_rresp [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_rready [KERNEL_NUM-1:0];
-wire               kernel_s_axi_snap_rvalid [KERNEL_NUM-1:0];
+wire [31:0]        kernel_s_axi_snap_rdata [KERNEL_NUM:0];
+wire [1:0]         kernel_s_axi_snap_rresp [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_rready [KERNEL_NUM:0];
+wire               kernel_s_axi_snap_rvalid [KERNEL_NUM:0];
 //Instantiate kernels
 
 genvar i;
@@ -318,6 +329,7 @@ example_kernel #(
 
 
                         //---- AXI Lite bus interfaced with SNAP core ----
+			.s_axi_snap_baseaddr      (32'h200 + i*32'h100                ),
                           // AXI write address channel
                         .s_axi_snap_awready       (kernel_s_axi_snap_awready[i]       ),
                         .s_axi_snap_awaddr        (kernel_s_axi_snap_awaddr[i]        ),
@@ -732,27 +744,55 @@ host_axi_lite_crossbar_0 axi_lite_X (
   .s_axi_rresp( s_axi_snap_rresp ),
   .s_axi_rvalid( s_axi_snap_rvalid ),
   .s_axi_rready( s_axi_snap_rready ),
-  .m_axi_awaddr( {kernel_s_axi_snap_awaddr[7],kernel_s_axi_snap_awaddr[6],kernel_s_axi_snap_awaddr[5],kernel_s_axi_snap_awaddr[4],kernel_s_axi_snap_awaddr[3],kernel_s_axi_snap_awaddr[2],kernel_s_axi_snap_awaddr[1],kernel_s_axi_snap_awaddr[0]} ),
-  .m_axi_awprot( {kernel_s_axi_snap_awprot[7],kernel_s_axi_snap_awprot[6],kernel_s_axi_snap_awprot[5],kernel_s_axi_snap_awprot[4],kernel_s_axi_snap_awprot[3],kernel_s_axi_snap_awprot[2],kernel_s_axi_snap_awprot[1],kernel_s_axi_snap_awprot[0]} ),
-  .m_axi_awvalid( {kernel_s_axi_snap_awvalid[7],kernel_s_axi_snap_awvalid[6],kernel_s_axi_snap_awvalid[5],kernel_s_axi_snap_awvalid[4],kernel_s_axi_snap_awvalid[3],kernel_s_axi_snap_awvalid[2],kernel_s_axi_snap_awvalid[1],kernel_s_axi_snap_awvalid[0]} ),
-  .m_axi_awready( {kernel_s_axi_snap_awready[7],kernel_s_axi_snap_awready[6],kernel_s_axi_snap_awready[5],kernel_s_axi_snap_awready[4],kernel_s_axi_snap_awready[3],kernel_s_axi_snap_awready[2],kernel_s_axi_snap_awready[1],kernel_s_axi_snap_awready[0]} ),
-  .m_axi_wdata( {kernel_s_axi_snap_wdata[7],kernel_s_axi_snap_wdata[6],kernel_s_axi_snap_wdata[5],kernel_s_axi_snap_wdata[4],kernel_s_axi_snap_wdata[3],kernel_s_axi_snap_wdata[2],kernel_s_axi_snap_wdata[1],kernel_s_axi_snap_wdata[0]} ),
-  .m_axi_wstrb( {kernel_s_axi_snap_wstrb[7],kernel_s_axi_snap_wstrb[6],kernel_s_axi_snap_wstrb[5],kernel_s_axi_snap_wstrb[4],kernel_s_axi_snap_wstrb[3],kernel_s_axi_snap_wstrb[2],kernel_s_axi_snap_wstrb[1],kernel_s_axi_snap_wstrb[0]} ),
-  .m_axi_wvalid( {kernel_s_axi_snap_wvalid[7],kernel_s_axi_snap_wvalid[6],kernel_s_axi_snap_wvalid[5],kernel_s_axi_snap_wvalid[4],kernel_s_axi_snap_wvalid[3],kernel_s_axi_snap_wvalid[2],kernel_s_axi_snap_wvalid[1],kernel_s_axi_snap_wvalid[0]} ),
-  .m_axi_wready( {kernel_s_axi_snap_wready[7],kernel_s_axi_snap_wready[6],kernel_s_axi_snap_wready[5],kernel_s_axi_snap_wready[4],kernel_s_axi_snap_wready[3],kernel_s_axi_snap_wready[2],kernel_s_axi_snap_wready[1],kernel_s_axi_snap_wready[0]} ),
-  .m_axi_bresp( {kernel_s_axi_snap_bresp[7],kernel_s_axi_snap_bresp[6],kernel_s_axi_snap_bresp[5],kernel_s_axi_snap_bresp[4],kernel_s_axi_snap_bresp[3],kernel_s_axi_snap_bresp[2],kernel_s_axi_snap_bresp[1],kernel_s_axi_snap_bresp[0]} ),
-  .m_axi_bvalid( {kernel_s_axi_snap_bvalid[7],kernel_s_axi_snap_bvalid[6],kernel_s_axi_snap_bvalid[5],kernel_s_axi_snap_bvalid[4],kernel_s_axi_snap_bvalid[3],kernel_s_axi_snap_bvalid[2],kernel_s_axi_snap_bvalid[1],kernel_s_axi_snap_bvalid[0]} ),
-  .m_axi_bready( {kernel_s_axi_snap_bready[7],kernel_s_axi_snap_bready[6],kernel_s_axi_snap_bready[5],kernel_s_axi_snap_bready[4],kernel_s_axi_snap_bready[3],kernel_s_axi_snap_bready[2],kernel_s_axi_snap_bready[1],kernel_s_axi_snap_bready[0]} ),
-  .m_axi_araddr( {kernel_s_axi_snap_araddr[7],kernel_s_axi_snap_araddr[6],kernel_s_axi_snap_araddr[5],kernel_s_axi_snap_araddr[4],kernel_s_axi_snap_araddr[3],kernel_s_axi_snap_araddr[2],kernel_s_axi_snap_araddr[1],kernel_s_axi_snap_araddr[0]} ),
-  .m_axi_arprot( {kernel_s_axi_snap_arprot[7],kernel_s_axi_snap_arprot[6],kernel_s_axi_snap_arprot[5],kernel_s_axi_snap_arprot[4],kernel_s_axi_snap_arprot[3],kernel_s_axi_snap_arprot[2],kernel_s_axi_snap_arprot[1],kernel_s_axi_snap_arprot[0]} ),
-  .m_axi_arvalid( {kernel_s_axi_snap_arvalid[7],kernel_s_axi_snap_arvalid[6],kernel_s_axi_snap_arvalid[5],kernel_s_axi_snap_arvalid[4],kernel_s_axi_snap_arvalid[3],kernel_s_axi_snap_arvalid[2],kernel_s_axi_snap_arvalid[1],kernel_s_axi_snap_arvalid[0]} ),
-  .m_axi_arready( {kernel_s_axi_snap_arready[7],kernel_s_axi_snap_arready[6],kernel_s_axi_snap_arready[5],kernel_s_axi_snap_arready[4],kernel_s_axi_snap_arready[3],kernel_s_axi_snap_arready[2],kernel_s_axi_snap_arready[1],kernel_s_axi_snap_arready[0]} ),
-  .m_axi_rdata( {kernel_s_axi_snap_rdata[7],kernel_s_axi_snap_rdata[6],kernel_s_axi_snap_rdata[5],kernel_s_axi_snap_rdata[4],kernel_s_axi_snap_rdata[3],kernel_s_axi_snap_rdata[2],kernel_s_axi_snap_rdata[1],kernel_s_axi_snap_rdata[0]} ),
-  .m_axi_rresp( {kernel_s_axi_snap_rresp[7],kernel_s_axi_snap_rresp[6],kernel_s_axi_snap_rresp[5],kernel_s_axi_snap_rresp[4],kernel_s_axi_snap_rresp[3],kernel_s_axi_snap_rresp[2],kernel_s_axi_snap_rresp[1],kernel_s_axi_snap_rresp[0]} ),
-  .m_axi_rvalid( {kernel_s_axi_snap_rvalid[7],kernel_s_axi_snap_rvalid[6],kernel_s_axi_snap_rvalid[5],kernel_s_axi_snap_rvalid[4],kernel_s_axi_snap_rvalid[3],kernel_s_axi_snap_rvalid[2],kernel_s_axi_snap_rvalid[1],kernel_s_axi_snap_rvalid[0]} ),
-  .m_axi_rready( {kernel_s_axi_snap_rready[7],kernel_s_axi_snap_rready[6],kernel_s_axi_snap_rready[5],kernel_s_axi_snap_rready[4],kernel_s_axi_snap_rready[3],kernel_s_axi_snap_rready[2],kernel_s_axi_snap_rready[1],kernel_s_axi_snap_rready[0]} )
+  .m_axi_awaddr( {kernel_s_axi_snap_awaddr[8], kernel_s_axi_snap_awaddr[7],kernel_s_axi_snap_awaddr[6],kernel_s_axi_snap_awaddr[5],kernel_s_axi_snap_awaddr[4],kernel_s_axi_snap_awaddr[3],kernel_s_axi_snap_awaddr[2],kernel_s_axi_snap_awaddr[1],kernel_s_axi_snap_awaddr[0]} ),
+  .m_axi_awprot( {kernel_s_axi_snap_awprot[8], kernel_s_axi_snap_awprot[7],kernel_s_axi_snap_awprot[6],kernel_s_axi_snap_awprot[5],kernel_s_axi_snap_awprot[4],kernel_s_axi_snap_awprot[3],kernel_s_axi_snap_awprot[2],kernel_s_axi_snap_awprot[1],kernel_s_axi_snap_awprot[0]} ),
+  .m_axi_awvalid( {kernel_s_axi_snap_awvalid[8], kernel_s_axi_snap_awvalid[7],kernel_s_axi_snap_awvalid[6],kernel_s_axi_snap_awvalid[5],kernel_s_axi_snap_awvalid[4],kernel_s_axi_snap_awvalid[3],kernel_s_axi_snap_awvalid[2],kernel_s_axi_snap_awvalid[1],kernel_s_axi_snap_awvalid[0]} ),
+  .m_axi_awready( {kernel_s_axi_snap_awready[8], kernel_s_axi_snap_awready[7],kernel_s_axi_snap_awready[6],kernel_s_axi_snap_awready[5],kernel_s_axi_snap_awready[4],kernel_s_axi_snap_awready[3],kernel_s_axi_snap_awready[2],kernel_s_axi_snap_awready[1],kernel_s_axi_snap_awready[0]} ),
+  .m_axi_wdata( {kernel_s_axi_snap_wdata[8], kernel_s_axi_snap_wdata[7],kernel_s_axi_snap_wdata[6],kernel_s_axi_snap_wdata[5],kernel_s_axi_snap_wdata[4],kernel_s_axi_snap_wdata[3],kernel_s_axi_snap_wdata[2],kernel_s_axi_snap_wdata[1],kernel_s_axi_snap_wdata[0]} ),
+  .m_axi_wstrb( {kernel_s_axi_snap_wstrb[8], kernel_s_axi_snap_wstrb[7],kernel_s_axi_snap_wstrb[6],kernel_s_axi_snap_wstrb[5],kernel_s_axi_snap_wstrb[4],kernel_s_axi_snap_wstrb[3],kernel_s_axi_snap_wstrb[2],kernel_s_axi_snap_wstrb[1],kernel_s_axi_snap_wstrb[0]} ),
+  .m_axi_wvalid( {kernel_s_axi_snap_wvalid[8], kernel_s_axi_snap_wvalid[7],kernel_s_axi_snap_wvalid[6],kernel_s_axi_snap_wvalid[5],kernel_s_axi_snap_wvalid[4],kernel_s_axi_snap_wvalid[3],kernel_s_axi_snap_wvalid[2],kernel_s_axi_snap_wvalid[1],kernel_s_axi_snap_wvalid[0]} ),
+  .m_axi_wready( {kernel_s_axi_snap_wready[8], kernel_s_axi_snap_wready[7],kernel_s_axi_snap_wready[6],kernel_s_axi_snap_wready[5],kernel_s_axi_snap_wready[4],kernel_s_axi_snap_wready[3],kernel_s_axi_snap_wready[2],kernel_s_axi_snap_wready[1],kernel_s_axi_snap_wready[0]} ),
+  .m_axi_bresp( {kernel_s_axi_snap_bresp[8], kernel_s_axi_snap_bresp[7],kernel_s_axi_snap_bresp[6],kernel_s_axi_snap_bresp[5],kernel_s_axi_snap_bresp[4],kernel_s_axi_snap_bresp[3],kernel_s_axi_snap_bresp[2],kernel_s_axi_snap_bresp[1],kernel_s_axi_snap_bresp[0]} ),
+  .m_axi_bvalid( {kernel_s_axi_snap_bvalid[8], kernel_s_axi_snap_bvalid[7],kernel_s_axi_snap_bvalid[6],kernel_s_axi_snap_bvalid[5],kernel_s_axi_snap_bvalid[4],kernel_s_axi_snap_bvalid[3],kernel_s_axi_snap_bvalid[2],kernel_s_axi_snap_bvalid[1],kernel_s_axi_snap_bvalid[0]} ),
+  .m_axi_bready( {kernel_s_axi_snap_bready[8], kernel_s_axi_snap_bready[7],kernel_s_axi_snap_bready[6],kernel_s_axi_snap_bready[5],kernel_s_axi_snap_bready[4],kernel_s_axi_snap_bready[3],kernel_s_axi_snap_bready[2],kernel_s_axi_snap_bready[1],kernel_s_axi_snap_bready[0]} ),
+  .m_axi_araddr( {kernel_s_axi_snap_araddr[8], kernel_s_axi_snap_araddr[7],kernel_s_axi_snap_araddr[6],kernel_s_axi_snap_araddr[5],kernel_s_axi_snap_araddr[4],kernel_s_axi_snap_araddr[3],kernel_s_axi_snap_araddr[2],kernel_s_axi_snap_araddr[1],kernel_s_axi_snap_araddr[0]} ),
+  .m_axi_arprot( {kernel_s_axi_snap_arprot[8], kernel_s_axi_snap_arprot[7],kernel_s_axi_snap_arprot[6],kernel_s_axi_snap_arprot[5],kernel_s_axi_snap_arprot[4],kernel_s_axi_snap_arprot[3],kernel_s_axi_snap_arprot[2],kernel_s_axi_snap_arprot[1],kernel_s_axi_snap_arprot[0]} ),
+  .m_axi_arvalid( {kernel_s_axi_snap_arvalid[8], kernel_s_axi_snap_arvalid[7],kernel_s_axi_snap_arvalid[6],kernel_s_axi_snap_arvalid[5],kernel_s_axi_snap_arvalid[4],kernel_s_axi_snap_arvalid[3],kernel_s_axi_snap_arvalid[2],kernel_s_axi_snap_arvalid[1],kernel_s_axi_snap_arvalid[0]} ),
+  .m_axi_arready( {kernel_s_axi_snap_arready[8], kernel_s_axi_snap_arready[7],kernel_s_axi_snap_arready[6],kernel_s_axi_snap_arready[5],kernel_s_axi_snap_arready[4],kernel_s_axi_snap_arready[3],kernel_s_axi_snap_arready[2],kernel_s_axi_snap_arready[1],kernel_s_axi_snap_arready[0]} ),
+  .m_axi_rdata( {kernel_s_axi_snap_rdata[8], kernel_s_axi_snap_rdata[7],kernel_s_axi_snap_rdata[6],kernel_s_axi_snap_rdata[5],kernel_s_axi_snap_rdata[4],kernel_s_axi_snap_rdata[3],kernel_s_axi_snap_rdata[2],kernel_s_axi_snap_rdata[1],kernel_s_axi_snap_rdata[0]} ),
+  .m_axi_rresp( {kernel_s_axi_snap_rresp[8], kernel_s_axi_snap_rresp[7],kernel_s_axi_snap_rresp[6],kernel_s_axi_snap_rresp[5],kernel_s_axi_snap_rresp[4],kernel_s_axi_snap_rresp[3],kernel_s_axi_snap_rresp[2],kernel_s_axi_snap_rresp[1],kernel_s_axi_snap_rresp[0]} ),
+  .m_axi_rvalid( {kernel_s_axi_snap_rvalid[8], kernel_s_axi_snap_rvalid[7],kernel_s_axi_snap_rvalid[6],kernel_s_axi_snap_rvalid[5],kernel_s_axi_snap_rvalid[4],kernel_s_axi_snap_rvalid[3],kernel_s_axi_snap_rvalid[2],kernel_s_axi_snap_rvalid[1],kernel_s_axi_snap_rvalid[0]} ),
+  .m_axi_rready( {kernel_s_axi_snap_rready[8], kernel_s_axi_snap_rready[7],kernel_s_axi_snap_rready[6],kernel_s_axi_snap_rready[5],kernel_s_axi_snap_rready[4],kernel_s_axi_snap_rready[3],kernel_s_axi_snap_rready[2],kernel_s_axi_snap_rready[1],kernel_s_axi_snap_rready[0]} )
 );
 
-
+ axi_lite_global_slave #(
+           .KERNEL_NUM   (KERNEL_NUM                     ),
+           .DATA_WIDTH   (32                             ),
+           .ADDR_WIDTH   (32                             )
+ ) maxi_lite_global_slave (
+                                .clk                   (clk                   ),
+                                .rst_n                 (rst_n                 ),
+                                .s_axi_awready         (kernel_s_axi_snap_awready[8]    ),
+                                .s_axi_awaddr          (kernel_s_axi_snap_awaddr[8]     ),//32b
+                                .s_axi_awprot          (kernel_s_axi_snap_awprot[8]     ),//3b
+                                .s_axi_awvalid         (kernel_s_axi_snap_awvalid[8]    ),
+                                .s_axi_wready          (kernel_s_axi_snap_wready[8]     ),
+                                .s_axi_wdata           (kernel_s_axi_snap_wdata[8]      ),//32b
+                                .s_axi_wstrb           (kernel_s_axi_snap_wstrb[8]      ),//4b
+                                .s_axi_wvalid          (kernel_s_axi_snap_wvalid[8]     ),
+                                .s_axi_bresp           (kernel_s_axi_snap_bresp[8]      ),//2b
+                                .s_axi_bvalid          (kernel_s_axi_snap_bvalid[8]     ),
+                                .s_axi_bready          (kernel_s_axi_snap_bready[8]     ),
+                                .s_axi_arready         (kernel_s_axi_snap_arready[8]    ),
+                                .s_axi_arvalid         (kernel_s_axi_snap_arvalid[8]    ),
+                                .s_axi_araddr          (kernel_s_axi_snap_araddr[8]     ),//32b
+                                .s_axi_arprot          (kernel_s_axi_snap_arprot[8]     ),//3b
+                                .s_axi_rdata           (kernel_s_axi_snap_rdata[8]      ),//32b
+                                .s_axi_rresp           (kernel_s_axi_snap_rresp[8]      ),//2b
+                                .s_axi_rready          (kernel_s_axi_snap_rready[8]     ),
+                                .s_axi_rvalid          (kernel_s_axi_snap_rvalid[8]     ),
+                                .i_action_type         (i_action_type                   ),
+                                .kernel_complete       (kernel_o_complete               )
+        );
 
 endmodule

@@ -71,7 +71,7 @@ module example_kernel #(
                         output    [0003:0]                             m_axi_snap_arregion    ,
                         output                                         m_axi_snap_arvalid     ,
                         input                                          m_axi_snap_arready     ,
-                          // AXI  ead data channel
+                          // AXI read data channel
                         output                                         m_axi_snap_rready      ,
                         input     [ENGINE_AXI_MM_ID_WIDTH - 1:0]       m_axi_snap_rid         ,
                         input     [ENGINE_AXI_MM_DATA_WIDTH - 1:0]     m_axi_snap_rdata       ,
@@ -131,6 +131,7 @@ module example_kernel #(
                         */
 
                         //---- AXI Lite bus interfaced with SNAP core ----
+                        input     [ENGINE_AXI_S_LITE_ADDR_WIDTH - 1:0] s_axi_snap_baseaddr      ,
                           // AXI write address channel
                         output                                         s_axi_snap_awready       ,
                         input     [ENGINE_AXI_S_LITE_ADDR_WIDTH - 1:0] s_axi_snap_awaddr        ,
@@ -211,6 +212,8 @@ module example_kernel #(
  ) maxi_lite_slave (
                                 .clk                   (clk                   ),
                                 .rst_n                 (rst_n                 ),
+                                .s_axi_baseaddr        (s_axi_snap_baseaddr   ),
+
                                 .s_axi_awready         (s_axi_snap_awready    ),
                                 .s_axi_awaddr          (s_axi_snap_awaddr     ),//32b
                                 .s_axi_awprot          (s_axi_snap_awprot     ),//3b

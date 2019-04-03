@@ -67,13 +67,13 @@
 static const char* version = GIT_VERSION;
 static  int verbose_level = 0;
 
-static uint64_t get_usec (void)
-{
-	struct timeval t;
-
-	gettimeofday (&t, NULL);
-	return t.tv_sec * 1000000 + t.tv_usec;
-}
+//static uint64_t get_usec (void)
+//{
+//	struct timeval t;
+//
+//	gettimeofday (&t, NULL);
+//	return t.tv_sec * 1000000 + t.tv_usec;
+//}
 
 
 static void* alloc_mem (int align, int size)
@@ -128,30 +128,30 @@ static uint32_t action_read(struct snap_card* h, uint32_t addr)
 }
 
 
-/*
- *  Wait for SNAP Idle.
- */
-static int action_wait_idle (struct snap_card* h, int timeout, uint64_t* elapsed)
-{
-	int rc = ETIME;
-	uint64_t t_start;   /* time in usec */
-	uint64_t td = 0;	/* Diff time in usec */
-
-
-	/* Wait for Action to go back to Idle */
-	t_start = get_usec();
-	rc = snap_action_completed ((void*)h, NULL, timeout);
-	td = get_usec() - t_start;
-
-	if (rc) {
-		rc = 0;	/* Good */
-	} else {
-		VERBOSE0 ("Error. Timeout while Waiting for Idle\n");
-	}
-
-	*elapsed = td;
-	return rc;
-}
+///*
+// *  Wait for SNAP Idle.
+// */
+//static int action_wait_idle (struct snap_card* h, int timeout, uint64_t* elapsed)
+//{
+//	int rc = ETIME;
+//	uint64_t t_start;   /* time in usec */
+//	uint64_t td = 0;	/* Diff time in usec */
+//
+//
+//	/* Wait for Action to go back to Idle */
+//	t_start = get_usec();
+//	rc = snap_action_completed ((void*)h, NULL, timeout);
+//	td = get_usec() - t_start;
+//
+//	if (rc) {
+//		rc = 0;	/* Good */
+//	} else {
+//		VERBOSE0 ("Error. Timeout while Waiting for Idle\n");
+//	}
+//
+//	*elapsed = td;
+//	return rc;
+//}
 
 static void action_mem_copy (struct snap_card* h,
 					   void* patt_src_base,
@@ -166,28 +166,29 @@ static void action_mem_copy (struct snap_card* h,
 	VERBOSE0 (" Host Memory TARGET ADDR: %p -- SIZE: %d(Bytes)\n", patt_tgt_base, (int)patt_size);
 
 	VERBOSE0 (" Start register config! \n");
+	uint64_t base_addr = 0x300;
 
 	// source address
-	action_write (h, ACTION_PATT_INIT_ADDR_L,
+	action_write (h, base_addr + ACTION_PATT_INIT_ADDR_L,
 				  (uint32_t) (((uint64_t) patt_src_base) & 0xffffffff));
-	action_write (h, ACTION_PATT_INIT_ADDR_H,
+	action_write (h, base_addr + ACTION_PATT_INIT_ADDR_H,
 				  (uint32_t) ((((uint64_t) patt_src_base) >> 32) & 0xffffffff));
 	VERBOSE1 (" Write ACTION_PATT_INIT_ADDR done! \n");
 
 	// target address
-	action_write (h, ACTION_PATT_DEST_ADDR_L,
+	action_write (h, base_addr + ACTION_PATT_DEST_ADDR_L,
 				  (uint32_t) (((uint64_t) patt_tgt_base) & 0xffffffff));
-	action_write (h, ACTION_PATT_DEST_ADDR_H,
+	action_write (h, base_addr + ACTION_PATT_DEST_ADDR_H,
 				  (uint32_t) ((((uint64_t) patt_tgt_base) >> 32) & 0xffffffff));
 	VERBOSE1 (" Write ACTION_PATT_DEST_ADDR done! \n");
 
 	// transfer data size (in bytes)
-	action_write (h, ACTION_PATT_TOTAL_NUM,
+	action_write (h, base_addr + ACTION_PATT_TOTAL_NUM,
 				  (uint32_t) (((uint64_t) patt_size) & 0xffffffff));
 	VERBOSE1 (" Write ACTION_PATT_TOTAL_NUM done! \n");
 	
 	// how many cycles to wait after memcopy done (in cycles)
-	action_write (h, ACTION_ADD_WAIT_CYCLE,
+	action_write (h, base_addr + ACTION_ADD_WAIT_CYCLE,
 				  (uint32_t) (((uint64_t) wait_cyc) & 0xffffffff));
 	VERBOSE1 (" Write ACTION_ADD_WAIT_CYCLE done! \n");
 
@@ -195,13 +196,13 @@ static void action_mem_copy (struct snap_card* h,
 	// Start memory copy
 	VERBOSE0 (" Write ACTION_CONTROL to start copying! \n");
 	// Write a pulse to start
-	action_write (h, ACTION_CONTROL, 0x00000001);
-	action_write (h, ACTION_CONTROL, 0x00000000);
+	action_write (h, base_addr + ACTION_CONTROL, 0x00000001);
+	action_write (h, base_addr + ACTION_CONTROL, 0x00000000);
 
 	// Poll status for memcpy done signal
 	cnt = 0;
 	do {
-		reg_data = action_read(h, ACTION_STATUS_L);
+		reg_data = action_read(h, base_addr + ACTION_STATUS_L);
 
 		// Status[0]
 		if ((reg_data & 0x00000001) == 1) {
@@ -217,7 +218,7 @@ static void action_mem_copy (struct snap_card* h,
 //	VERBOSE0("Draining ..\n");
 
 //	do {
-//		reg_data = action_read(h, ACTION_STATUS_L);
+//		reg_data = action_read(h, base_addr + ACTION_STATUS_L);
 //
 //		VERBOSE3("Draining Status reg with 0X%X\n", reg_data);
 //		cnt++;
@@ -278,15 +279,16 @@ static int mem_copy (struct snap_card* dnc,
 					int wait_cyc)
 {
 	int rc;
-	uint64_t td;
+//	uint64_t td;
 
 	rc = 0;
 
 	action_mem_copy (dnc, patt_src_base, patt_tgt_base, 
 			patt_size, wait_cyc);
-	VERBOSE1 ("Wait for idle\n");
-	rc = action_wait_idle (dnc, timeout, &td);
-	VERBOSE1 ("Card in idle\n");
+//	VERBOSE1 ("Wait for idle\n");
+//	rc = action_wait_idle (dnc, timeout, &td);
+//	VERBOSE1 ("Card in idle\n");
+        VERBOSE3("timeout is %d\n", timeout);
 
 	if (0 != rc) {
 		return rc;

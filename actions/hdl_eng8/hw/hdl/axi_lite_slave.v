@@ -6,6 +6,7 @@ module axi_lite_slave #(
 )(
                       input             clk                   ,
                       input             rst_n                 ,
+                      input      [ADDR_WIDTH - 1:0] s_axi_baseaddr          ,
 
                       //---- AXI Lite bus----
                         // AXI write address channel
@@ -73,7 +74,6 @@ module axi_lite_slave #(
  reg        app_start_q;
  reg        reg_snap_status_bit0;
 
- wire       delayed_memcpy_done;
  reg [31:0] additional_cycle_counter;
 
  ///////////////////////////////////////////////////
@@ -144,7 +144,7 @@ module axi_lite_slave #(
    if(~rst_n)
      write_address <= 32'd0;
    else if(s_axi_awvalid & s_axi_awready)
-     write_address <= s_axi_awaddr;
+     write_address <= s_axi_awaddr - s_axi_baseaddr;
 
 //---- write address ready ----
  always@(posedge clk or negedge rst_n)
@@ -288,7 +288,7 @@ assign REG_snap_status_rd = {REG_snap_status[31:4], i_app_ready, idle_q, app_don
    if(~rst_n)
      s_axi_rdata <= 32'd0;
    else if(s_axi_arvalid & s_axi_arready)
-     case(s_axi_araddr)
+     case(s_axi_araddr - s_axi_baseaddr)
        ADDR_SNAP_STATUS         : s_axi_rdata <= REG_snap_status_rd[31:0];
        ADDR_SNAP_INT_ENABLE     : s_axi_rdata <= REG_snap_int_enable[31:0];
        ADDR_SNAP_ACTION_TYPE    : s_axi_rdata <= i_action_type;
