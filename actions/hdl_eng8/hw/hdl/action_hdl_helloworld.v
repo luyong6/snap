@@ -19,7 +19,8 @@ module action_hdl_helloworld # (
            parameter C_S_AXI_CTRL_REG_ADDR_WIDTH    = 32,
        
            // Parameters of Axi Master Bus Interface AXI_HOST_MEM ; to Host memory
-           parameter C_M_AXI_HOST_MEM_ID_WIDTH      = 2,
+           parameter C_M_AXI_HOST_MEM_ID_WIDTH      = 2, //to snap_core. Not used. Tie 0
+           parameter ACTION_ID_WIDTH                = 4, //from snap_action_shim
            parameter C_M_AXI_HOST_MEM_ADDR_WIDTH    = 64,
            parameter C_M_AXI_HOST_MEM_DATA_WIDTH    = 512,
            parameter C_M_AXI_HOST_MEM_AWUSER_WIDTH  = 8,
@@ -187,13 +188,72 @@ assign m_axi_snap_arlock = 0;
 assign m_axi_snap_awuser = 0;
 assign m_axi_snap_aruser = 0;
 
+
+// ID fifos to deal with ID
+wire rid_fifo_wen;
+wire rid_fifo_ren;
+wire wid_fifo_wen;
+wire wid_fifo_ren;
+wire rid_fifo_full;
+wire rid_fifo_empty;
+wire rid_wr_rst_busy;
+wire rid_rd_rst_busy;
+wire wid_fifo_full;
+wire wid_fifo_empty;
+wire wid_wr_rst_busy;
+wire wid_rd_rst_busy;
+
+wire [7:0] action_awid;
+wire [7:0] action_arid;
+wire [7:0] action_wid;
+wire [7:0] action_rid;
+wire [7:0] action_bid;
+
+//Loop back fifo to return IDs
+//Note: fifo data width is 8. ACTION_ID_WIDTH is 4. 
+assign action_awid[7:4] = 4'd0;
+assign action_arid[7:4] = 4'd0;
+assign action_wid[7:4] = 4'd0;
+
+assign rid_fifo_wen = m_axi_snap_arvalid && m_axi_snap_arready;
+assign rid_fifo_ren = m_axi_snap_rvalid && m_axi_snap_rready;
+assign wid_fifo_wen = m_axi_snap_awvalid && m_axi_snap_awready;
+assign wid_fifo_ren = m_axi_snap_bvalid && m_axi_snap_bready;
+
+    axi_rid_fifo rid_fifo (
+        .clk            (clk)
+        ,.srst          (~rst_n) 
+        ,.wr_en         (rid_fifo_wen)
+        ,.din           (action_arid)
+        ,.rd_en         (rid_fifo_ren)
+        ,.dout          (action_rid)
+        ,.full          (rid_fifo_full)
+        ,.empty         (rid_fifo_empty)
+        ,.wr_rst_busy   (rid_wr_rst_busy)
+        ,.rd_rst_busy   (rid_rd_rst_busy)
+    );
+
+    axi_wid_fifo wid_fifo (
+        .clk            (clk)
+        ,.srst          (~rst_n) 
+        ,.wr_en         (wid_fifo_wen)
+        ,.din           (action_awid)
+        ,.rd_en         (wid_fifo_ren)
+        ,.dout          (action_bid)
+        ,.full          (wid_fifo_full)
+        ,.empty         (wid_fifo_empty)
+        ,.wr_rst_busy   (wid_wr_rst_busy)
+        ,.rd_rst_busy   (wid_rd_rst_busy)
+);
+
+
  snap_action_shim #(
            // Parameters of Axi Slave Bus Interface AXI_CTRL_REG
            .C_S_AXI_CTRL_REG_DATA_WIDTH   (C_S_AXI_CTRL_REG_DATA_WIDTH   ),
            .C_S_AXI_CTRL_REG_ADDR_WIDTH   (C_S_AXI_CTRL_REG_ADDR_WIDTH   ),
        
            // Parameters of Axi Master Bus Interface AXI_HOST_MEM ; to Host memory
-           .C_M_AXI_HOST_MEM_ID_WIDTH     (1     ),
+           .C_M_AXI_HOST_MEM_ID_WIDTH     (ACTION_ID_WIDTH               ),
            .C_M_AXI_HOST_MEM_ADDR_WIDTH   (C_M_AXI_HOST_MEM_ADDR_WIDTH   ),
            .C_M_AXI_HOST_MEM_DATA_WIDTH   (C_M_AXI_HOST_MEM_DATA_WIDTH   ),
            .C_M_AXI_HOST_MEM_AWUSER_WIDTH (C_M_AXI_HOST_MEM_AWUSER_WIDTH ),
@@ -204,7 +264,7 @@ assign m_axi_snap_aruser = 0;
  ) msnap_action_shim (
                         .clk                      (clk                      ),
                         .rst_n                    (rst_n                    ), 
-                        .m_axi_snap_awid          (                         ),  
+                        .m_axi_snap_awid          (action_awid[ACTION_ID_WIDTH-1:0]),  
                         .m_axi_snap_awaddr        (m_axi_snap_awaddr        ),  
                         .m_axi_snap_awlen         (m_axi_snap_awlen         ),  
                         .m_axi_snap_awsize        (m_axi_snap_awsize        ),  
@@ -217,17 +277,17 @@ assign m_axi_snap_aruser = 0;
                         .m_axi_snap_awuser        (m_axi_snap_awuser        ),  
                         .m_axi_snap_awvalid       (m_axi_snap_awvalid       ),  
                         .m_axi_snap_awready       (m_axi_snap_awready       ),
-                        .m_axi_snap_wid           (                         ), 
+                        .m_axi_snap_wid           (action_wid[ACTION_ID_WIDTH-1:0]), 
                         .m_axi_snap_wdata         (m_axi_snap_wdata         ),  
                         .m_axi_snap_wstrb         (m_axi_snap_wstrb         ),  
                         .m_axi_snap_wlast         (m_axi_snap_wlast         ),  
                         .m_axi_snap_wvalid        (m_axi_snap_wvalid        ),  
                         .m_axi_snap_wready        (m_axi_snap_wready        ),
                         .m_axi_snap_bready        (m_axi_snap_bready        ),  
-                        .m_axi_snap_bid           (0                        ),
+                        .m_axi_snap_bid           (action_bid[ACTION_ID_WIDTH-1:0]),
                         .m_axi_snap_bresp         (m_axi_snap_bresp         ),
                         .m_axi_snap_bvalid        (m_axi_snap_bvalid        ),
-                        .m_axi_snap_arid          (                         ),  
+                        .m_axi_snap_arid          (action_arid[ACTION_ID_WIDTH-1:0]),  
                         .m_axi_snap_araddr        (m_axi_snap_araddr        ),  
                         .m_axi_snap_arlen         (m_axi_snap_arlen         ),  
                         .m_axi_snap_arsize        (m_axi_snap_arsize        ),  
@@ -241,7 +301,7 @@ assign m_axi_snap_aruser = 0;
                         .m_axi_snap_arvalid       (m_axi_snap_arvalid       ), 
                         .m_axi_snap_arready       (m_axi_snap_arready       ),
                         .m_axi_snap_rready        (m_axi_snap_rready        ), 
-                        .m_axi_snap_rid           (0                        ),
+                        .m_axi_snap_rid           (action_rid[ACTION_ID_WIDTH-1:0]),
                         .m_axi_snap_rdata         (m_axi_snap_rdata         ),
                         .m_axi_snap_rresp         (m_axi_snap_rresp         ),
                         .m_axi_snap_rlast         (m_axi_snap_rlast         ),

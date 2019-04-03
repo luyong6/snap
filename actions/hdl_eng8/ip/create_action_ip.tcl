@@ -41,6 +41,18 @@ set_property generate_synth_checkpoint false [get_files $src_dir/host_axi_lite_c
 generate_target all [get_files $src_dir/host_axi_lite_crossbar_0/host_axi_lite_crossbar_0.xci] >> $log_file
 
 
+puts "                        Generating axi_rid_fifo ......"
+create_ip -name fifo_generator -vendor xilinx.com -library ip -version 13.2 -module_name axi_rid_fifo >> $log_file
+set_property -dict [list CONFIG.Component_Name {axi_rid_fifo} CONFIG.Performance_Options {First_Word_Fall_Through} CONFIG.Input_Data_Width {8} CONFIG.Input_Depth {512} CONFIG.Output_Data_Width {8} CONFIG.Output_Depth {512} CONFIG.Use_Embedded_Registers {false} CONFIG.Data_Count_Width {9} CONFIG.Write_Data_Count_Width {9} CONFIG.Read_Data_Count_Width {9} CONFIG.Full_Threshold_Assert_Value {511} CONFIG.Full_Threshold_Negate_Value {510} CONFIG.Empty_Threshold_Assert_Value {4} CONFIG.Empty_Threshold_Negate_Value {5}] [get_ips axi_rid_fifo] >> $log_file
+set_property generate_synth_checkpoint false [get_files $src_dir/axi_rid_fifo/axi_rid_fifo.xci] >> $log_file
+generate_target all [get_files $src_dir/axi_rid_fifo/axi_rid_fifo.xci] >> $log_file
+
+
+puts "                        Generating axi_wid_fifo ......"
+create_ip -name fifo_generator -vendor xilinx.com -library ip -version 13.2 -module_name axi_wid_fifo >> $log_file
+set_property -dict [list CONFIG.Component_Name {axi_wid_fifo} CONFIG.Performance_Options {First_Word_Fall_Through} CONFIG.Input_Data_Width {8} CONFIG.Input_Depth {512} CONFIG.Output_Data_Width {8} CONFIG.Output_Depth {512} CONFIG.Use_Embedded_Registers {false} CONFIG.Data_Count_Width {9} CONFIG.Write_Data_Count_Width {9} CONFIG.Read_Data_Count_Width {9} CONFIG.Full_Threshold_Assert_Value {511} CONFIG.Full_Threshold_Negate_Value {510} CONFIG.Empty_Threshold_Assert_Value {4} CONFIG.Empty_Threshold_Negate_Value {5}] [get_ips axi_wid_fifo] >> $log_file
+set_property generate_synth_checkpoint false [get_files $src_dir/axi_wid_fifo/axi_wid_fifo.xci] >> $log_file
+generate_target all [get_files $src_dir/axi_wid_fifo/axi_wid_fifo.xci] >> $log_file
 
 
 close_project
