@@ -42,7 +42,6 @@ BUILDDIR = ./obj
 TOBUILDDIR = $(addprefix $(BUILDDIR)/,$(1))
 MKDIR = if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 
-CXX=g++
 CPPFLAGS += -I./mt
 MT_CPPSRCS := $(shell find ./mt -name "*.cpp")
 MT_CPPOBJS := $(call TOBUILDDIR,$(patsubst %.cpp,%.o,$(MT_CPPSRCS)))
@@ -55,7 +54,6 @@ all: all_build
 
 $(MT_CPPOBJS): $(BUILDDIR)/%.o: %.cpp
 	@$(MKDIR)
-	@echo compiling $<
 	$(CXX) $(MT_OPTFLAGS) $(MT_COMPILEFLAGS) $(MT_CPPFLAGS) $(MT_INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
 
 #config:
@@ -73,3 +71,6 @@ hdl_helloworld: hdl_helloworld.o $(MT_CPPOBJS)
 # If you have the host code outside of the default snap directory structure, 
 # change to /path/to/snap/actions/software.mk
 include $(SNAP_ROOT)/actions/software.mk
+
+clean:
+	@$(RM) $(MT_CPPOBJS) $(projs) *.o *.out *.log

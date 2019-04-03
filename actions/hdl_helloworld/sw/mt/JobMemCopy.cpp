@@ -89,10 +89,10 @@ int JobMemCopy::mem_copy()
     uint32_t reg_data;
     uint32_t cnt = 0;
 
-    logging (boost::format("%s") % " ------ Memory Copy Start -------- ");
+    logging (boost::format("%s") % "------ Memory Copy Start -------- ");
     logging (boost::format("SOURCE ADDR:      %#X") % (uint64_t)m_src);
     logging (boost::format("DESTINATION ADDR: %#X") % (uint64_t)m_dest);
-    logging (boost::format("COPY SIZE:        %z\n") % m_size);
+    logging (boost::format("COPY SIZE:        %d") % m_size);
 
     logging (boost::format("%s") % "    Start register config!");
 
@@ -148,7 +148,7 @@ int JobMemCopy::mem_copy()
 
         logging (boost::format("Draining Status reg with 0X%X") % reg_data);
         cnt++;
-    } while (cnt < 50);
+    } while (cnt < 2);
 
     return 0;
 }

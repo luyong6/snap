@@ -29,9 +29,18 @@ void WorkerMemCopy::check_buf_done()
 {
     //TODO: wait for interrupt and check if a buf is done with a job
 
-    for (int i = 0; i < (int)m_bufs.size(); i++) {
-        if (0 == m_bufs[i]->get_num_remaining_jobs()) {
-            m_bufs[i]->stop();
+    while (true) {
+        bool all_done = true;
+        for (int i = 0; i < (int)m_bufs.size(); i++) {
+            if (0 == m_bufs[i]->get_num_remaining_jobs()) {
+                m_bufs[i]->stop();
+            } else {
+                all_done = false;
+            }
+        }
+
+        if (all_done) {
+            break;
         }
     }
 }

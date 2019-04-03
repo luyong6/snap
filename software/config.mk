@@ -46,6 +46,7 @@ MAKE		+= -s
 endif
 
 CC		= $(CROSS)gcc
+CXX		= $(CROSS)g++
 AS		= $(CROSS)as
 LD		= $(CROSS)ld
 AR		= $(CROSS)ar
@@ -66,6 +67,7 @@ ifeq ($(V),1)
 MAKEFLAGS	+= --silent
 MAKE		+= -s
 CC		= printf "\t[CC]\t%s\n" `basename "$@"`; $(CROSS)gcc
+CXX		= printf "\t[CXX]\t%s\n" `basename "$@"`; $(CROSS)g++
 AS		= printf "\t[AS]\t%s\n" `basename "$@"`; $(CROSS)as
 AR		= printf "\t[AR]\t%s\n" `basename "$@"`; $(CROSS)ar
 LD		= printf "\t[LD]\t%s\n" `basename "$@"`; $(CROSS)ld
