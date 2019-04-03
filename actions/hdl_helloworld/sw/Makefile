@@ -38,25 +38,37 @@ $(error Please make sure that $$SNAP_ROOT is set up correctly.)
 endif
 endif
 
-CPPFLAGS+= -g
-CXX=gcc
+BUILDDIR = ./obj
+TOBUILDDIR = $(addprefix $(BUILDDIR)/,$(1))
+MKDIR = if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+
+CXX=g++
+CPPFLAGS += -I./mt
+MT_CPPSRCS := $(shell find ./mt -name "*.cpp")
+MT_CPPOBJS := $(call TOBUILDDIR,$(patsubst %.cpp,%.o,$(MT_CPPSRCS)))
+MT_CPPFLAGS := --std=c++11
+MT_INCLUDES := -I. -I./mt -I../../../software/include
+MT_COMPILEFLAGS := -W -Wall -Wno-multichar -Wno-unused-parameter -Wno-unused-function -Werror-implicit-function-declaration
+MT_OPTFLAGS := -O3
 
 all: all_build
+
+$(MT_CPPOBJS): $(BUILDDIR)/%.o: %.cpp
+	@$(MKDIR)
+	@echo compiling $<
+	$(CXX) $(MT_OPTFLAGS) $(MT_COMPILEFLAGS) $(MT_CPPFLAGS) $(MT_INCLUDES) -c $< -MD -MT $@ -MF $(@:%o=%d) -o $@
 
 #config:
 #	./action_config.sh
 
-#something_else.o: something_else.cpp
-#	$(CXX) -c $(CPPFLAGS) $($(@:.o=)_CPPFLAGS) $< -o $@
-#
-#hdl_helloworld_objs += something_else.o
+hdl_helloworld_objs += $(MT_CPPOBJS)
 hdl_helloworld: $(hdl_helloworld_objs)
 
 projs += hdl_helloworld
 
 #hdl_helloworld: hdl_helloworld.o something_else.o
-hdl_helloworld: hdl_helloworld.o
-	$(CXX) $(LDFLAGS) $($(@)_LDFLAGS) $@.o $($(@)_objs) $($(@)_libs) $(LDLIBS) -o $@
+hdl_helloworld: hdl_helloworld.o $(MT_CPPOBJS)
+	$(CXX) $(LDFLAGS) $($(@)_LDFLAGS) --std=c++11 -lboost_thread $@.o $($(@)_objs) $($(@)_libs) $(LDLIBS) -o $@
 
 # If you have the host code outside of the default snap directory structure, 
 # change to /path/to/snap/actions/software.mk
