@@ -181,6 +181,14 @@ choice
 		  Please remember to set the environment variable "ACTION_ROOT"
 		  in snap_env.sh to the directory of the action source code.
 
+	config HDL_ENG8
+		bool "HDL_ENG8 - 8 memory copy engines"
+                help
+                   This is the demo showing how multiple engines
+                   works with multiple threads
+                select DISABLE_SDRAM_AND_BRAM
+                select DISABLE_NVME
+
 	config HDL_HELLOWORLD
 		bool "HDL HelloWorld (Minimum example written in Verilog)"
                 help

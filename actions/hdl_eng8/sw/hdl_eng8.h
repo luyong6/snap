@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __HDL_HELLOWORLD__
-#define __HDL_HELLOWORLD__
+#ifndef __HDL_ENG8__
+#define __HDL_ENG8__
 
 /*
  * This makes it obvious that we are influenced by HLS details ...
  * The ACTION control bits are defined in the following file.
  */
 //#include <snap_hls_if.h>
-#define ACTION_TYPE_HDL_HELLOWORLD     0x10140002	/* Action Type */
+#define ACTION_TYPE_HDL_ENG8     0x10140003	/* Action Type */
 #define ACTION_STATUS_L                0x30
 #define ACTION_STATUS_H                0x34
 
@@ -39,5 +39,4 @@
 //Additional waiting time (in cycles)
 #define ACTION_ADD_WAIT_CYCLE          0x58
 
-
-#endif	/* __HDL_HELLOWORLD__ */
+#endif	/* __HDL_ENG8__ */
