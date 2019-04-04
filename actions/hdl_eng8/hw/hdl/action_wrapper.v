@@ -173,6 +173,8 @@ module action_wrapper #(
     // Make wuser stick to 0
     assign m_axi_card_mem0_wuser = 0;
     assign m_axi_host_mem_wuser = 0;
+    assign interrupt_ctx = 0;
+    assign interrupt_src = 0;
 
     action_hdl_helloworld #(
            // Parameters of Axi Master Bus Interface AXI_CARD_MEM0 ; to DDR memory
@@ -327,8 +329,9 @@ module action_wrapper #(
         .s_axi_snap_rresp      (s_axi_ctrl_reg_rresp),
         .s_axi_snap_rready     (s_axi_ctrl_reg_rready),
         .s_axi_snap_rvalid     (s_axi_ctrl_reg_rvalid),
-        .i_action_type         (32'h10140002), //Should match ACTION_TYPE_HDL_HELLOWORLD with sw
-        .i_action_version      (32'h00000001)  //Hardware Version
+        .i_action_type         (32'h10140003), //Should match ACTION_TYPE_HDL_ENG8 with sw
+        .i_action_version      (32'h00000001), //Hardware Version
+        .o_interrupt           (interrupt)
     );
     
 endmodule

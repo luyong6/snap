@@ -70,17 +70,17 @@ public:
     // Get number of remaining jobs
     int get_num_remaining_jobs();
 
+    // The mutex used to sync between threads
+    // (each buf would start a thread to work with all the jobs in queue))
+    // Make it static to share across all instances of BufBase
+    static boost::mutex m_global_mutex;
+
 protected:
     // The queue to hold all jobs of this buffer
     std::deque<JobPtr> m_jobs;
 
     // The pointer to the thread instance
     boost::shared_ptr<boost::thread> m_thread;
-
-    // The mutex used to sync between threads
-    // (each buf would start a thread to work with all the jobs in queue))
-    // Make it static to share across all instances of BufBase
-    static boost::mutex m_class_mutex;
 
     // The mutex used inside an object to sync between different calls within the object
     boost::mutex m_mutex;

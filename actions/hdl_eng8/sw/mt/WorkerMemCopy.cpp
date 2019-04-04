@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+#include <boost/chrono.hpp>
 #include "WorkerMemCopy.h"
+#include "hdl_eng8.h"
 
-WorkerMemCopy::WorkerMemCopy()
-    : WorkerBase()
+WorkerMemCopy::WorkerMemCopy(HardwareManagerPtr in_hw_mgr)
+    : WorkerBase(in_hw_mgr)
 {
 }
 
@@ -27,8 +29,6 @@ WorkerMemCopy::~WorkerMemCopy()
 
 void WorkerMemCopy::check_buf_done()
 {
-    //TODO: wait for interrupt and check if a buf is done with a job
-
     while (true) {
         bool all_done = true;
         for (int i = 0; i < (int)m_bufs.size(); i++) {
@@ -41,6 +41,29 @@ void WorkerMemCopy::check_buf_done()
 
         if (all_done) {
             break;
+        }
+
+        if (m_hw_mgr->wait_interrupt() == 0) {
+            boost::lock_guard<boost::mutex> lock (BufBase::m_global_mutex);
+            std::cout << "Interrupt signaled" << std::endl;
+            uint32_t reg_data = m_hw_mgr->reg_read(ACTION_GLOBAL_INTERRUPT_MASK);
+
+            if (0 == reg_data) {
+                std::cerr << "WARNING! Interrupt mask is zero!" << std::endl;
+            }
+
+            for (int i = 0; i < 8; i++) {
+                uint32_t m = (1 << i);
+                if (reg_data & m) {
+                    // Make sure the transactions are finished before interrupt the buffers (threads)
+                    boost::this_thread::sleep_for(boost::chrono::seconds(1));
+                    m_bufs[(i*2)]->interrupt();
+                    m_bufs[(i*2)+1]->interrupt();
+                }
+            }
+
+            // Clear the interrupt
+            m_hw_mgr->reg_write(ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
         }
     }
 }

@@ -24,8 +24,8 @@
 
 int mt_test_16_threads()
 {
-    WorkerMemCopyPtr worker = boost::make_shared<WorkerMemCopy>();
     HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (0);
+    WorkerMemCopyPtr worker = boost::make_shared<WorkerMemCopy>(hw_mgr);
     // Initialize the hardware
     if (hw_mgr->init()) {
         std::cerr << "Failed to initialize card" << std::endl;

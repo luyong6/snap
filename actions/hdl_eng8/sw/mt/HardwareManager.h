@@ -46,6 +46,9 @@ public:
     // Clean up the hardware related resources
     void cleanup();
 
+    // Wait interrupt
+    int wait_interrupt();
+
 private:
     // The card number
     int m_card_num;

@@ -18,6 +18,8 @@
 #include "BufMemCopy.h"
 #include "JobMemCopy.h"
 
+boost::mutex BufMemCopy::m_kernel_mutex[8];
+
 BufMemCopy::BufMemCopy()
     : BufBase (0, 600),
       m_src (NULL),
@@ -106,10 +108,9 @@ int BufMemCopy::allocate (size_t in_src_size, size_t in_dest_size)
 
 void BufMemCopy::work_with_job (JobPtr in_job)
 {
-    // Lock between buffers (each buffer would have a thread working on it)
-    // TODO: currently only 1 kernel (1 action) is available, so block other threads
-    // on operating hardware when one of the thread are working on that.
-    boost::lock_guard<boost::mutex> lock (BufMemCopy::m_class_mutex);
+    // Two buffers works on the same kernel, so block the other buffer from touching
+    // the kernel until the current one finished the job
+    boost::lock_guard<boost::mutex> lock (BufMemCopy::m_kernel_mutex[m_id / 2]);
 
     JobMemCopyPtr job = boost::dynamic_pointer_cast<JobMemCopy> (in_job);
 
@@ -134,15 +135,27 @@ void BufMemCopy::work_with_job (JobPtr in_job)
     job->set_dest (m_dest);
     job->set_size (m_src_size);
 
-    if (0 != job->run()) {
-        std::cerr << "Failed to run the JobMemCopy" << std::endl;
-        return;
+    do {
+        // Lock between buffers (each buffer would have a thread working on it).
+        // At one time, only 1 thread is allowed to touching the AXI-lite bus
+        boost::lock_guard<boost::mutex> lock (BufMemCopy::m_global_mutex);
+
+        if (0 != job->run()) {
+            std::cerr << "Failed to run the JobMemCopy" << std::endl;
+            return;
+        }
+    } while (0);
+
+    // Wait for interrupt
+    if (0 != wait_interrupt()) {
+        std::cerr << "Failed to wait interrupt for JobMemCopy" << std::endl;
     }
 
-    // TODO: need to wait for interrupt
-    //if (0 != wait_interrupt()) {
-    //    std::cerr << "Failed to wait interrupt for JobMemCopy" << std::endl;
-    //}
+    if (0 != job->mem_check()) {
+        std::cerr << "ERROR! Check failed on memory copy" << std::endl;
+        job->fail();
+        return;
+    }
 
     return;
 }

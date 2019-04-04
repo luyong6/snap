@@ -17,8 +17,9 @@
 #include "boost/make_shared.hpp"
 #include "WorkerBase.h"
 
-WorkerBase::WorkerBase()
-    : m_check_thread (NULL)
+WorkerBase::WorkerBase(HardwareManagerPtr in_hw_mgr)
+    : m_check_thread (NULL),
+      m_hw_mgr (in_hw_mgr)
 {
 }
 

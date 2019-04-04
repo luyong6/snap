@@ -24,7 +24,7 @@ class WorkerBase
 {
 public:
     // Constructor of the worker base
-    WorkerBase();
+    WorkerBase(HardwareManagerPtr in_hw_mgr);
 
     // Destructor of the worker base
     ~WorkerBase();
@@ -47,6 +47,9 @@ protected:
 
     // Thread to check if buffers are done their job
     boost::shared_ptr<boost::thread> m_check_thread;
+
+    // The hardware manager
+    HardwareManagerPtr m_hw_mgr;
 };
 
 typedef boost::shared_ptr<WorkerBase> WorkerPtr;

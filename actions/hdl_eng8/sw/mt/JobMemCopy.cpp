@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "time.h"
 #include "JobMemCopy.h"
 #include "hdl_eng8.h"
 
@@ -63,18 +64,60 @@ int JobMemCopy::run()
 {
     if (NULL == m_src || NULL == m_dest) {
         std::cerr << "Address of source buffer or destination buffer is NULL" << std::endl;
+        fail();
         return -1;
     }
 
     if (0 == m_size) {
         std::cerr << "Copy size is zero, nothing to do" << std::endl;
+        fail();
+        return -1;
+    }
+
+    if (0 != mem_init()) {
+        std::cerr << "Failed to perform memory init" << std::endl;
+        fail();
         return -1;
     }
 
     if (0 != mem_copy()) {
         std::cerr << "Failed to perform memory copy" << std::endl;
+        fail();
         return -1;
     }
+
+    //if (0 != mem_check()) {
+    //    std::cerr << "Check failed on memory copy" << std::endl;
+    //    fail();
+    //    return -1;
+    //} else {
+    //    logging (boost::format("%s") % "Check Passed!");
+    //}
+
+    done();
+
+    return 0;
+}
+
+uint32_t JobMemCopy::reg_addr (uint32_t in_offset)
+{
+    // TODO: hardcoding the base ?
+    return 0x200 + (m_buf_id / 2) * 0x100 + in_offset;
+}
+
+int JobMemCopy::mem_init()
+{
+    uint8_t* ptr_src = (uint8_t*) m_src;
+    uint8_t* ptr_tgt = (uint8_t*) m_dest;
+    size_t cnt = 0;
+    srand((unsigned) time(0));
+
+    do {
+        *(ptr_src++) = rand() % 256;
+        *(ptr_tgt++) = 0;
+
+        cnt++;
+    } while (cnt < m_size);
 
     return 0;
 }
@@ -86,8 +129,8 @@ int JobMemCopy::mem_copy()
         return -1;
     }
 
-    uint32_t reg_data;
-    uint32_t cnt = 0;
+    //uint32_t reg_data;
+    //uint32_t cnt = 0;
 
     logging (boost::format("%s") % "------ Memory Copy Start -------- ");
     logging (boost::format("SOURCE ADDR:      %#X") % (uint64_t)m_src);
@@ -97,54 +140,78 @@ int JobMemCopy::mem_copy()
     logging (boost::format("%s") % "    Start register config!");
 
     // source address
-    m_hw_mgr->reg_write (ACTION_PATT_INIT_ADDR_L,
+    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_INIT_ADDR_L),
                   (uint32_t) (((uint64_t) m_src) & 0xffffffff));
-    m_hw_mgr->reg_write (ACTION_PATT_INIT_ADDR_H,
+    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_INIT_ADDR_H),
                   (uint32_t) ((((uint64_t) m_src) >> 32) & 0xffffffff));
     logging (boost::format("%s") % "    Write ACTION_PATT_INIT_ADDR done!");
 
     // target address
-    m_hw_mgr->reg_write (ACTION_PATT_DEST_ADDR_L,
+    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_DEST_ADDR_L),
                   (uint32_t) (((uint64_t) m_dest) & 0xffffffff));
-    m_hw_mgr->reg_write (ACTION_PATT_DEST_ADDR_H,
+    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_DEST_ADDR_H),
                   (uint32_t) ((((uint64_t) m_dest) >> 32) & 0xffffffff));
     logging (boost::format("%s") % "    Write ACTION_PATT_DEST_ADDR done!");
 
     // transfer data size (in bytes)
-    m_hw_mgr->reg_write (ACTION_PATT_TOTAL_NUM,
+    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_TOTAL_NUM),
                   (uint32_t) (((uint64_t) m_size) & 0xffffffff));
     logging (boost::format("%s") % "    Write ACTION_PATT_TOTAL_NUM done!");
 
     // Start memory copy
     logging (boost::format("%s") % "    Write ACTION_CONTROL for pattern copying!");
     // Write a pulse
-    m_hw_mgr->reg_write (ACTION_CONTROL, 0x00000001);
-    m_hw_mgr->reg_write (ACTION_CONTROL, 0x00000000);
+    m_hw_mgr->reg_write (reg_addr(ACTION_CONTROL), 0x00000001);
+    m_hw_mgr->reg_write (reg_addr(ACTION_CONTROL), 0x00000000);
 
-    // Poll status for memcpy done signal
-    cnt = 0;
+    //// Poll status for memcpy done signal
+    //cnt = 0;
 
-    do {
-        reg_data = m_hw_mgr->reg_read (ACTION_STATUS_L);
+    //do {
+    //    reg_data = m_hw_mgr->reg_read (reg_addr(ACTION_STATUS_L));
 
-        // Status[0]
-        if ((reg_data & 0x00000001) == 1) {
-            logging (boost::format("%s") % "Memcopy done!");
-            break;
-        }
+    //    // Status[0]
+    //    if ((reg_data & 0x00000001) == 1) {
+    //        logging (boost::format("%s") % "Memcopy done!");
+    //        break;
+    //    }
 
-        logging (boost::format("Polling Status reg with 0X%X") % reg_data);
-        cnt++;
-    } while (1);//(cnt < 100);
+    //    logging (boost::format("Polling Status reg with 0X%X") % reg_data);
+    //    cnt++;
+    //} while (1);//(cnt < 100);
 
-    cnt = 0;
+    //cnt = 0;
 
-    do {
-        reg_data = m_hw_mgr->reg_read (ACTION_STATUS_L);
+    //do {
+    //    reg_data = m_hw_mgr->reg_read (reg_addr(ACTION_STATUS_L));
 
-        logging (boost::format("Draining Status reg with 0X%X") % reg_data);
-        cnt++;
-    } while (cnt < 2);
+    //    logging (boost::format("Draining Status reg with 0X%X") % reg_data);
+    //    cnt++;
+    //} while (cnt < 2);
 
     return 0;
 }
+
+int JobMemCopy::mem_check()
+{
+    uint8_t* ptr_src = (uint8_t*) m_src;
+    uint8_t* ptr_tgt = (uint8_t*) m_dest;
+    size_t cnt = 0;
+    int rc = 0;
+
+    do {
+        if (*(ptr_src) != *(ptr_tgt)) {
+            logging (boost::format("MISCOMPARE on addr %d") % cnt);
+            logging (boost::format("SOURCE DATA %#x") % (uint32_t)(*ptr_src));
+            logging (boost::format("TARGET DATA %#x") % (uint32_t)(*ptr_tgt));
+            ptr_src++;
+            ptr_tgt++;
+            rc = 1;
+        }
+
+        cnt++;
+    } while (cnt < m_size);
+
+    return rc;
+}
+

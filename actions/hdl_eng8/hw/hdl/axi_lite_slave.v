@@ -229,7 +229,7 @@ assign actual_memcpy_done = pattern_memcpy_done & axi_master_status[10] & axi_ma
 
 always @(posedge clk or negedge rst_n) begin
     if (~rst_n) begin
-        additional_cycle_counter <= 32'h20;
+        additional_cycle_counter <= 32'h0;
     end
     else if (pattern_memcpy_enable) begin
 	additional_cycle_counter <= REG_add_wait_cycle;

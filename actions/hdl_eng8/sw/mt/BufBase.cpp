@@ -17,7 +17,7 @@
 #include "boost/make_shared.hpp"
 #include "BufBase.h"
 
-boost::mutex BufBase::m_class_mutex;
+boost::mutex BufBase::m_global_mutex;
 
 BufBase::BufBase()
     : m_thread (NULL),
@@ -120,7 +120,7 @@ int BufBase::wait_interrupt()
     while (0 < (time = m_cond.timed_wait (lock,
                                           boost::get_system_time()
                                           + boost::posix_time::seconds (time)))) {
-        std::cout << "Interrupt recieved for buf" << std::dec << m_id << std::endl;
+        std::cout << "Interrupt recieved for buf " << std::dec << m_id << std::endl;
         return 0;
     }
 

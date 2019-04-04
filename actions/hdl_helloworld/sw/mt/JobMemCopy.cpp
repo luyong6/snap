@@ -111,19 +111,15 @@ int JobMemCopy::mem_copy()
     logging (boost::format("%s") % "    Write ACTION_PATT_DEST_ADDR done!");
 
     // transfer data size (in bytes)
-    m_hw_mgr->reg_write (ACTION_PATT_TOTAL_NUM_L,
+    m_hw_mgr->reg_write (ACTION_PATT_TOTAL_NUM,
                   (uint32_t) (((uint64_t) m_size) & 0xffffffff));
-    m_hw_mgr->reg_write (ACTION_PATT_TOTAL_NUM_H,
-                  (uint32_t) ((((uint64_t) m_size) >> 32) & 0xffffffff));
     logging (boost::format("%s") % "    Write ACTION_PATT_TOTAL_NUM done!");
 
     // Start memory copy
     logging (boost::format("%s") % "    Write ACTION_CONTROL for pattern copying!");
     // Write a pulse
-    m_hw_mgr->reg_write (ACTION_CONTROL_L, 0x00000001);
-    m_hw_mgr->reg_write (ACTION_CONTROL_H, 0x00000000);
-    m_hw_mgr->reg_write (ACTION_CONTROL_L, 0x00000000);
-    m_hw_mgr->reg_write (ACTION_CONTROL_H, 0x00000000);
+    m_hw_mgr->reg_write (ACTION_CONTROL, 0x00000001);
+    m_hw_mgr->reg_write (ACTION_CONTROL, 0x00000000);
 
     // Poll status for memcpy done signal
     cnt = 0;

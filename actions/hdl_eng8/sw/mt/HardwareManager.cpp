@@ -81,3 +81,13 @@ void HardwareManager::cleanup()
     snap_detach_action (m_capi_action);
     snap_card_free (m_capi_card);
 }
+
+int HardwareManager::wait_interrupt()
+{
+    if (snap_action_wait_interrupt(m_capi_action, m_timeout)) {
+        std::cerr << "ERROR waiting interrupt, possibly timed out" << std::endl;
+        return -1;
+    }
+
+    return 0;
+}

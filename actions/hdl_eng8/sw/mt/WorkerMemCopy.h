@@ -23,7 +23,7 @@ class WorkerMemCopy : public WorkerBase
 {
 public:
     // Constructor of the worker base
-    WorkerMemCopy();
+    WorkerMemCopy(HardwareManagerPtr in_hw_mgr);
 
     // Destructor of the worker base
     ~WorkerMemCopy();

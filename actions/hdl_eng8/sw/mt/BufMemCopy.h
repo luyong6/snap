@@ -66,6 +66,10 @@ private:
 
     // Helper function to alloc aligned memory buffers
     void* aalloc (int align, int size);
+
+    // Locks to sync between buffers (threads) on the same kernel,
+    // specific to the number of kernels
+    static boost::mutex m_kernel_mutex[8];
 };
 
 typedef boost::shared_ptr<BufMemCopy> BufMemCopyPtr;

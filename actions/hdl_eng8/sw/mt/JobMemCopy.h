@@ -48,8 +48,14 @@ public:
     // Run this job
     virtual int run();
 
+    // Init the memory before copying
+    int mem_init();
+
     // Perform the memory copy
     int mem_copy();
+
+    // Check the memory result
+    int mem_check();
 
 private:
     // The address of the source buffer
@@ -60,6 +66,9 @@ private:
 
     // The copy size;
     size_t m_size;
+
+    // Calculate the register address for each job
+    uint32_t reg_addr (uint32_t in_offset); 
 };
 
 typedef boost::shared_ptr<JobMemCopy> JobMemCopyPtr;

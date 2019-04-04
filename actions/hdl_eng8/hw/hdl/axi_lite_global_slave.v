@@ -35,7 +35,8 @@ module axi_lite_global_slave #(
                       output reg        s_axi_rvalid          ,
                       //---- local control ----
                       input      [31:0] i_action_type         ,
-                      input      [KERNEL_NUM-1:0]       kernel_complete
+                      input      [KERNEL_NUM-1:0]       kernel_complete,
+                      output     o_interrupt
                       );
 
 
@@ -45,16 +46,21 @@ module axi_lite_global_slave #(
  wire[31:0] wr_mask;
 
  wire [31:0] write_data_interrupt_control;
- wire [31:0] write_data_interrupt_mask;
+ //wire [31:0] write_data_interrupt_mask;
+ wire [31:0] REG_interrupt_mask_rd;
+ wire [31:0] REG_interrupt_control_rd;
 
  reg [31:0] completion_q;
+ reg [KERNEL_NUM-1:0] kernel_complete_prev;
+ reg [KERNEL_NUM-1:0] pending_completed_kernels;
+ wire [KERNEL_NUM-1:0] kernel_complete_posedge;
  ///////////////////////////////////////////////////
  //***********************************************//
  //>                REGISTERS                    <//
  //***********************************************//
  //                                               //
  /**/   reg [31:0] REG_interrupt_control     ;  /*W1C*/
- /**/   reg [31:0] REG_interrupt_mask        ;  /*RW*/
+ /**/   reg [31:0] REG_interrupt_mask        ;  /*RO*/
  //                                               //
  //-----------------------------------------------//
  //                                               //
@@ -70,7 +76,38 @@ module axi_lite_global_slave #(
 
 
 
+/***********************************************************************
+*                          interrupt generation                        *
+***********************************************************************/
+genvar i;
+generate
+  for (i = 0; i < KERNEL_NUM; i = i + 1) begin:kernel_complete_posedge_gen
+    assign kernel_complete_posedge[i] = (kernel_complete_prev[i] == 0) & (kernel_complete[i] == 1);
+  end
+endgenerate
 
+ assign o_interrupt = |REG_interrupt_mask;
+ always@(posedge clk or negedge rst_n)
+   if(~rst_n)
+     kernel_complete_prev <= {KERNEL_NUM{1'b1}};
+   else
+     kernel_complete_prev <= kernel_complete;
+
+ always@(posedge clk or negedge rst_n)
+   if(~rst_n)
+     REG_interrupt_mask <= 32'b0;
+   else begin
+     if ((o_interrupt == 1'b0) & ~(s_axi_wvalid & s_axi_wready)) begin
+       REG_interrupt_mask[KERNEL_NUM-1:0] <= pending_completed_kernels;
+     end
+   end
+
+ always@(posedge clk or negedge rst_n)
+   if(~rst_n)
+     pending_completed_kernels <= {KERNEL_NUM{1'b0}};
+   else begin
+     pending_completed_kernels <= (pending_completed_kernels | kernel_complete_posedge) & ~REG_interrupt_mask[KERNEL_NUM-1:0];
+   end
 
 /***********************************************************************
 *                          writing registers                           *
@@ -105,19 +142,22 @@ module axi_lite_global_slave #(
  assign wr_mask = {{8{s_axi_wstrb[3]}},{8{s_axi_wstrb[2]}},{8{s_axi_wstrb[1]}},{8{s_axi_wstrb[0]}}};
 
  assign write_data_interrupt_control            = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_interrupt_control)};
- assign write_data_interrupt_mask               = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_interrupt_mask)};
+ //assign write_data_interrupt_mask               = {(s_axi_wdata&wr_mask)|(~wr_mask&REG_interrupt_mask)};
 
 //---- registers behaviour ----
  always@(posedge clk or negedge rst_n)
    if(~rst_n)
      begin
        REG_interrupt_control     <= 32'd0;
-       REG_interrupt_mask        <= 32'd0;
+       //REG_interrupt_mask        <= 32'd0;
      end
    else if(s_axi_wvalid & s_axi_wready)
      case(write_address)
-       ADDR_GLOBAL_INTR_CONTROL       : REG_interrupt_control <= write_data_interrupt_control;
-       ADDR_GLOBAL_INTR_MASK          : REG_interrupt_mask    <= write_data_interrupt_mask;
+       ADDR_GLOBAL_INTR_CONTROL       : begin 
+         REG_interrupt_control <= write_data_interrupt_control;
+         REG_interrupt_mask <= REG_interrupt_mask & ~write_data_interrupt_control;
+       end
+       //ADDR_GLOBAL_INTR_MASK          : REG_interrupt_mask    <= write_data_interrupt_mask;
 
        default :;
      endcase
