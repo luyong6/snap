@@ -66,7 +66,7 @@ projs += hdl_helloworld
 
 #hdl_helloworld: hdl_helloworld.o something_else.o
 hdl_helloworld: hdl_helloworld.o $(MT_CPPOBJS)
-	$(CXX) $(LDFLAGS) $($(@)_LDFLAGS) --std=c++11 -lboost_thread $@.o $($(@)_objs) $($(@)_libs) $(LDLIBS) -o $@
+	$(CXX) $(LDFLAGS) $($(@)_LDFLAGS) --std=c++11 -lboost_thread -lboost_system -lpthread -lboost_chrono $@.o $($(@)_objs) $($(@)_libs) $(LDLIBS) -o $@
 
 # If you have the host code outside of the default snap directory structure, 
 # change to /path/to/snap/actions/software.mk
