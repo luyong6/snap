@@ -151,11 +151,14 @@ void BufMemCopy::work_with_job (JobPtr in_job)
         std::cerr << "Failed to wait interrupt for JobMemCopy" << std::endl;
     }
 
+    std::cout << "Check memory on buf " << m_id << std::endl;
+
     if (0 != job->mem_check()) {
         std::cerr << "ERROR! Check failed on memory copy" << std::endl;
         job->fail();
         return;
     }
 
+    std::cout << "Finish memory checking on buf " << m_id << std::endl;
     return;
 }

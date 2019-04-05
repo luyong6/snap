@@ -15,6 +15,7 @@
  */
 
 #include <malloc.h>
+#include <iostream>
 #include "BufMemCopy.h"
 #include "JobMemCopy.h"
 

@@ -17,6 +17,7 @@
 #ifndef JobMemCopy_H_h
 #define JobMemCopy_H_h
 
+#include <iostream>
 #include "JobBase.h"
 
 class JobMemCopy : public JobBase
@@ -30,8 +31,8 @@ public:
 
     // Constructor of the job base
     JobMemCopy();
-    JobMemCopy(int in_id, int in_buf_id);
-    JobMemCopy(int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr);
+    JobMemCopy (int in_id, int in_buf_id);
+    JobMemCopy (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr);
 
     // Destructor of the job base
     ~JobMemCopy();
@@ -68,7 +69,7 @@ private:
     size_t m_size;
 
     // Calculate the register address for each job
-    uint32_t reg_addr (uint32_t in_offset); 
+    uint32_t reg_addr (uint32_t in_offset);
 };
 
 typedef boost::shared_ptr<JobMemCopy> JobMemCopyPtr;

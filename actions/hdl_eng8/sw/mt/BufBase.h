@@ -17,6 +17,7 @@
 #ifndef BUFBASE_H_h
 #define BUFBASE_H_h
 
+#include <iostream>
 #include <deque>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
@@ -28,14 +29,14 @@ class BufBase
 public:
     // Constructor of buffer base
     BufBase();
-    BufBase(int in_id);
-    BufBase(int in_id, int in_timeout);
+    BufBase (int in_id);
+    BufBase (int in_id, int in_timeout);
 
     // Destructor of buffer base
     virtual ~BufBase();
 
     // Get ID of this buffer
-    int get_id ();
+    int get_id();
 
     // Set ID of this buffer
     void set_id (int in_id);

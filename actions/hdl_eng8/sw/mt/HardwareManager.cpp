@@ -44,7 +44,7 @@ int HardwareManager::init()
     }
 
     m_capi_action = snap_attach_action (m_capi_card, ACTION_TYPE_HDL_ENG8,
-                                m_attach_flags, 5 * m_timeout);
+                                        m_attach_flags, 5 * m_timeout);
 
     return 0;
 }
@@ -84,8 +84,8 @@ void HardwareManager::cleanup()
 
 int HardwareManager::wait_interrupt()
 {
-    if (snap_action_wait_interrupt(m_capi_action, m_timeout)) {
-        std::cerr << "ERROR waiting interrupt, possibly timed out" << std::endl;
+    if (snap_action_wait_interrupt (m_capi_action, 1)) {
+        std::cout << "Retry waiting interrupt ... " << std::endl;
         return -1;
     }
 

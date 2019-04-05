@@ -20,7 +20,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    int mt_test_16_threads();
+int mt_test_16_threads();
 #ifdef __cplusplus
 }
 #endif

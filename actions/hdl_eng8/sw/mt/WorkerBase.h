@@ -17,6 +17,7 @@
 #ifndef WORKERBASE_H_h
 #define WORKERBASE_H_h
 
+#include <iostream>
 #include <vector>
 #include "BufBase.h"
 
@@ -24,7 +25,7 @@ class WorkerBase
 {
 public:
     // Constructor of the worker base
-    WorkerBase(HardwareManagerPtr in_hw_mgr);
+    WorkerBase (HardwareManagerPtr in_hw_mgr);
 
     // Destructor of the worker base
     ~WorkerBase();

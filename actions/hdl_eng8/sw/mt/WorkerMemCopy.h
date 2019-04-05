@@ -17,13 +17,14 @@
 #ifndef WORKERMEMCOPY_H_h
 #define WORKERMEMCOPY_H_h
 
+#include <iostream>
 #include "WorkerBase.h"
 
 class WorkerMemCopy : public WorkerBase
 {
 public:
     // Constructor of the worker base
-    WorkerMemCopy(HardwareManagerPtr in_hw_mgr);
+    WorkerMemCopy (HardwareManagerPtr in_hw_mgr);
 
     // Destructor of the worker base
     ~WorkerMemCopy();

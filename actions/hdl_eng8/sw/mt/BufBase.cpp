@@ -98,6 +98,7 @@ int BufBase::stop()
 {
     if (m_thread != NULL) {
         m_thread->interrupt();
+        //std::cout << "Stop buf " << m_id << std::endl;
     }
 
     // Return the number of remaining jobs
@@ -109,6 +110,7 @@ void BufBase::join()
     if (m_thread != NULL) {
         m_thread->join();
     }
+
 }
 
 int BufBase::wait_interrupt()
@@ -120,7 +122,7 @@ int BufBase::wait_interrupt()
     while (0 < (time = m_cond.timed_wait (lock,
                                           boost::get_system_time()
                                           + boost::posix_time::seconds (time)))) {
-        std::cout << "Interrupt recieved for buf " << std::dec << m_id << std::endl;
+        std::cout << "Interrupt recieved for buffer " << std::dec << m_id << std::endl;
         return 0;
     }
 
@@ -132,7 +134,6 @@ void BufBase::interrupt()
 {
     boost::lock_guard<boost::mutex> lock (m_mutex);
 
-    std::cout << "Interrupt buf" << std::dec << m_id << std::endl;
     m_cond.notify_all();
 }
 

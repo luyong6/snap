@@ -17,6 +17,7 @@
 #ifndef HARDWAREMANAGER_H_h
 #define HARDWAREMANAGER_H_h
 
+#include <iostream>
 #include <sstream>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>

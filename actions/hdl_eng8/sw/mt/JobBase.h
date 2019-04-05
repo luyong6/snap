@@ -17,6 +17,7 @@
 #ifndef JOBBASE_H_h
 #define JOBBASE_H_h
 
+#include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <boost/format.hpp>
 #include "HardwareManager.h"
@@ -34,8 +35,8 @@ public:
 
     // Constructor of the job base
     JobBase();
-    JobBase(int in_id, int in_buf_id);
-    JobBase(int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr);
+    JobBase (int in_id, int in_buf_id);
+    JobBase (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr);
 
     // Destructor of the job base
     ~JobBase();
@@ -56,10 +57,10 @@ public:
     virtual int run() = 0;
 
     // Get the pointer to hardware manager
-    HardwareManagerPtr get_hw_mgr(); 
+    HardwareManagerPtr get_hw_mgr();
 
     // The logging method
-    void logging(boost::format& in_fmt);
+    void logging (boost::format & in_fmt);
 
 protected:
     // The ID of this job itself
@@ -69,7 +70,7 @@ protected:
     int m_buf_id;
 
     // The status of this job
-    eStatus m_status; 
+    eStatus m_status;
 
     // The hardware manager
     HardwareManagerPtr m_hw_mgr;

@@ -17,6 +17,7 @@
 #ifndef HARDWAREMANAGER_H_h
 #define HARDWAREMANAGER_H_h
 
+#include <iostream>
 #include <sstream>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
@@ -29,7 +30,7 @@ class HardwareManager
 {
 public:
     // The Constructor of hardware manager
-    HardwareManager(int in_card_num);
+    HardwareManager (int in_card_num);
 
     // The Destructor of hardware manager
     ~HardwareManager();
@@ -38,10 +39,10 @@ public:
     int init();
 
     // Read the register
-    uint32_t reg_read(uint32_t in_addr);
+    uint32_t reg_read (uint32_t in_addr);
 
     // Write the register
-    void reg_write(uint32_t in_addr, uint32_t in_data);
+    void reg_write (uint32_t in_addr, uint32_t in_data);
 
     // Clean up the hardware related resources
     void cleanup();

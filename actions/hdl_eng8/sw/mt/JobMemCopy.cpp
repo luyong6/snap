@@ -86,14 +86,6 @@ int JobMemCopy::run()
         return -1;
     }
 
-    //if (0 != mem_check()) {
-    //    std::cerr << "Check failed on memory copy" << std::endl;
-    //    fail();
-    //    return -1;
-    //} else {
-    //    logging (boost::format("%s") % "Check Passed!");
-    //}
-
     done();
 
     return 0;
@@ -110,11 +102,11 @@ int JobMemCopy::mem_init()
     uint8_t* ptr_src = (uint8_t*) m_src;
     uint8_t* ptr_tgt = (uint8_t*) m_dest;
     size_t cnt = 0;
-    srand((unsigned) time(0));
+    srand ((unsigned) time (0));
 
     do {
-        *(ptr_src++) = rand() % 256;
-        *(ptr_tgt++) = 0;
+        * (ptr_src++) = rand() % 256;
+        * (ptr_tgt++) = 0;
 
         cnt++;
     } while (cnt < m_size);
@@ -132,37 +124,37 @@ int JobMemCopy::mem_copy()
     //uint32_t reg_data;
     //uint32_t cnt = 0;
 
-    logging (boost::format("%s") % "------ Memory Copy Start -------- ");
-    logging (boost::format("SOURCE ADDR:      %#X") % (uint64_t)m_src);
-    logging (boost::format("DESTINATION ADDR: %#X") % (uint64_t)m_dest);
-    logging (boost::format("COPY SIZE:        %d") % m_size);
+    logging (boost::format ("%s") % "------ Memory Copy Start -------- ");
+    logging (boost::format ("SOURCE ADDR:      %#X") % (uint64_t)m_src);
+    logging (boost::format ("DESTINATION ADDR: %#X") % (uint64_t)m_dest);
+    logging (boost::format ("COPY SIZE:        %d") % m_size);
 
-    logging (boost::format("%s") % "    Start register config!");
+    logging (boost::format ("%s") % "    Start register config!");
 
     // source address
-    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_INIT_ADDR_L),
-                  (uint32_t) (((uint64_t) m_src) & 0xffffffff));
-    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_INIT_ADDR_H),
-                  (uint32_t) ((((uint64_t) m_src) >> 32) & 0xffffffff));
-    logging (boost::format("%s") % "    Write ACTION_PATT_INIT_ADDR done!");
+    m_hw_mgr->reg_write (reg_addr (ACTION_PATT_INIT_ADDR_L),
+                         (uint32_t) (((uint64_t) m_src) & 0xffffffff));
+    m_hw_mgr->reg_write (reg_addr (ACTION_PATT_INIT_ADDR_H),
+                         (uint32_t) ((((uint64_t) m_src) >> 32) & 0xffffffff));
+    logging (boost::format ("%s") % "    Write ACTION_PATT_INIT_ADDR done!");
 
     // target address
-    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_DEST_ADDR_L),
-                  (uint32_t) (((uint64_t) m_dest) & 0xffffffff));
-    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_DEST_ADDR_H),
-                  (uint32_t) ((((uint64_t) m_dest) >> 32) & 0xffffffff));
-    logging (boost::format("%s") % "    Write ACTION_PATT_DEST_ADDR done!");
+    m_hw_mgr->reg_write (reg_addr (ACTION_PATT_DEST_ADDR_L),
+                         (uint32_t) (((uint64_t) m_dest) & 0xffffffff));
+    m_hw_mgr->reg_write (reg_addr (ACTION_PATT_DEST_ADDR_H),
+                         (uint32_t) ((((uint64_t) m_dest) >> 32) & 0xffffffff));
+    logging (boost::format ("%s") % "    Write ACTION_PATT_DEST_ADDR done!");
 
     // transfer data size (in bytes)
-    m_hw_mgr->reg_write (reg_addr(ACTION_PATT_TOTAL_NUM),
-                  (uint32_t) (((uint64_t) m_size) & 0xffffffff));
-    logging (boost::format("%s") % "    Write ACTION_PATT_TOTAL_NUM done!");
+    m_hw_mgr->reg_write (reg_addr (ACTION_PATT_TOTAL_NUM),
+                         (uint32_t) (((uint64_t) m_size) & 0xffffffff));
+    logging (boost::format ("%s") % "    Write ACTION_PATT_TOTAL_NUM done!");
 
     // Start memory copy
-    logging (boost::format("%s") % "    Write ACTION_CONTROL for pattern copying!");
+    logging (boost::format ("%s") % "    Write ACTION_CONTROL for pattern copying!");
     // Write a pulse
-    m_hw_mgr->reg_write (reg_addr(ACTION_CONTROL), 0x00000001);
-    m_hw_mgr->reg_write (reg_addr(ACTION_CONTROL), 0x00000000);
+    m_hw_mgr->reg_write (reg_addr (ACTION_CONTROL), 0x00000001);
+    m_hw_mgr->reg_write (reg_addr (ACTION_CONTROL), 0x00000000);
 
     //// Poll status for memcpy done signal
     //cnt = 0;
@@ -200,10 +192,10 @@ int JobMemCopy::mem_check()
     int rc = 0;
 
     do {
-        if (*(ptr_src) != *(ptr_tgt)) {
-            logging (boost::format("MISCOMPARE on addr %d") % cnt);
-            logging (boost::format("SOURCE DATA %#x") % (uint32_t)(*ptr_src));
-            logging (boost::format("TARGET DATA %#x") % (uint32_t)(*ptr_tgt));
+        if (* (ptr_src) != * (ptr_tgt)) {
+            logging (boost::format ("MISCOMPARE on addr %d") % cnt);
+            logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
+            logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
             ptr_src++;
             ptr_tgt++;
             rc = 1;

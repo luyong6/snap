@@ -16,6 +16,7 @@
 #ifndef BUFMEMCOPY_H_h
 #define BUFMEMCOPY_H_h
 
+#include <iostream>
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
