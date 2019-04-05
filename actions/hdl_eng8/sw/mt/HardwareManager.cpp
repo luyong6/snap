@@ -46,6 +46,11 @@ int HardwareManager::init()
     m_capi_action = snap_attach_action (m_capi_card, ACTION_TYPE_HDL_ENG8,
                                         m_attach_flags, 5 * m_timeout);
 
+    if (NULL == m_capi_action) {
+        std::cerr << "Failed to attach action!" << std::endl;
+        return -1;
+    }
+
     return 0;
 }
 
