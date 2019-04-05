@@ -100,6 +100,17 @@ endgenerate
      if ((o_interrupt == 1'b0) & ~(s_axi_wvalid & s_axi_wready)) begin
        REG_interrupt_mask[KERNEL_NUM-1:0] <= pending_completed_kernels;
      end
+     else if (s_axi_wvalid & s_axi_wready) begin
+       case(write_address)
+         ADDR_GLOBAL_INTR_CONTROL       : begin 
+           REG_interrupt_mask <= REG_interrupt_mask & ~write_data_interrupt_control;
+         end
+         default :;
+       endcase
+     end
+     else begin
+       REG_interrupt_mask <= REG_interrupt_mask;
+     end
    end
 
  always@(posedge clk or negedge rst_n)
@@ -155,7 +166,6 @@ endgenerate
      case(write_address)
        ADDR_GLOBAL_INTR_CONTROL       : begin 
          REG_interrupt_control <= write_data_interrupt_control;
-         REG_interrupt_mask <= REG_interrupt_mask & ~write_data_interrupt_control;
        end
        //ADDR_GLOBAL_INTR_MASK          : REG_interrupt_mask    <= write_data_interrupt_mask;
 
