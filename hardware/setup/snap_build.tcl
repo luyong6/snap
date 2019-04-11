@@ -25,7 +25,6 @@ set fpgacard      $::env(FPGACARD)
 set ila_debug     [string toupper $::env(ILA_DEBUG)]
 set vivadoVer     [version -short]
 
-
 #Checkpoint directory
 set dcp_dir $root_dir/build/Checkpoints
 set ::env(DCP_DIR) $dcp_dir
@@ -59,6 +58,8 @@ open_project $root_dir/viv_project/framework.xpr >> $logfile
 
 # for test!
 #set_param synth.elaboration.rodinMoreOptions {set rt::doParallel false}
+
+
 ##
 ## run synthese
 source $root_dir/setup/snap_synth_step.tcl
@@ -66,7 +67,7 @@ source $root_dir/setup/snap_synth_step.tcl
 
 ##
 ## locking PSL
-if { $vivadoVer < "2017.4" } {
+if { $vivadoVer < "2018.2" } {
   puts [format "%-*s%-*s%-*s%-*s"  $widthCol1 "" $widthCol2 "start locking PSL" $widthCol3 "" $widthCol4 "[clock format [clock seconds] -format {%T %a %b %d %Y}]"]
   lock_design -level routing b > $logs_dir/lock_design.log
 

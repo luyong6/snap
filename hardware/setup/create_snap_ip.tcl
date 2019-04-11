@@ -146,8 +146,8 @@ set create_ddr4_ad8k5   FALSE
 set create_ddr4_rcxvup  FALSE
 set create_ddr4_fx609   FALSE
 set create_ddr4_s241    FALSE
-set create_ddr4_u200    FALSE
 set create_ddr4_ad9v3   FALSE
+set create_ddr4_F37X    FALSE
 
 if { $fpga_card == "ADKU3" } {
   if { $bram_used == "TRUE" } {
@@ -197,14 +197,16 @@ if { $fpga_card == "ADKU3" } {
     set create_clock_conv   TRUE
     set create_ddr4_s241   TRUE
   }
-} elseif { $fpga_card == "U200" } {
+#==================================================================
+} elseif { $fpga_card == "F37X" } {
   if { $bram_used == "TRUE" } {
     set create_clock_conv   TRUE
     set create_bram        TRUE
   } elseif { $sdram_used == "TRUE" } {
     set create_clock_conv   TRUE
-    set create_ddr4_u200   TRUE
+    set create_ddr4_F37X   TRUE
   }
+#==================================================================
 } elseif { ($fpga_card == "N250S") || ($fpga_card == "N250SP") } {
   if { $bram_used == "TRUE" } {
     if { $nvme_used == "TRUE" } {
@@ -236,7 +238,7 @@ if { $create_clock_conv == "TRUE" } {
   puts "                        generating IP axi_clock_converter"
   create_ip -name axi_clock_converter -vendor xilinx.com -library ip -version 2.1 -module_name axi_clock_converter -dir $ip_dir  >> $log_file
 
-  if { ($sdram_used == "TRUE") && ( $fpga_card == "ADKU3" || $fpga_card == "S121B" || $fpga_card == "AD8K5" || $fpga_card == "S241"|| $fpga_card == "U200"|| $fpga_card == "AD9V3") } {
+  if { ($sdram_used == "TRUE") && ( $fpga_card == "ADKU3" || $fpga_card == "S121B" || $fpga_card == "AD8K5" || $fpga_card == "S241" || $fpga_card == "F37X" || $fpga_card == "AD9V3") } {
     set_property -dict [list CONFIG.ADDR_WIDTH {33} CONFIG.DATA_WIDTH {512} CONFIG.ID_WIDTH {4}] [get_ips axi_clock_converter]
   } else {
     set_property -dict [list CONFIG.ADDR_WIDTH {32} CONFIG.DATA_WIDTH {512} CONFIG.ID_WIDTH {4}] [get_ips axi_clock_converter]
@@ -461,8 +463,9 @@ if { $create_ddr4_s241 == "TRUE" } {
   puts "                        generating ddr4sdram example design"
   open_example_project -in_process -force -dir $ip_dir     [get_ips ddr4sdram] >> $log_file
 }
-#DDR4 create ddr4sdramm with ECC (U200)
-if { $create_ddr4_u200 == "TRUE" } {
+#=====================================================================================================================
+#DDR4 create ddr4sdramm with ECC (F37X)
+if { $create_ddr4_F37X == "TRUE" } {
   puts "                        generating IP ddr4sdram for $fpga_card"
   create_ip -name ddr4 -vendor xilinx.com -library ip -version 2.* -module_name ddr4sdram -dir $ip_dir >> $log_file
   set_property -dict [list                                                                    \
@@ -491,6 +494,7 @@ if { $create_ddr4_u200 == "TRUE" } {
   puts "                        generating ddr4sdram example design"
   open_example_project -in_process -force -dir $ip_dir     [get_ips ddr4sdram] >> $log_file
 }
+#====================================================================================================================
 #DDR4 create ddr4sdramm with ECC (S121B)
 if { $create_ddr4_s121b == "TRUE" } {
   puts "	                generating IP ddr4sdram for $fpga_card"
