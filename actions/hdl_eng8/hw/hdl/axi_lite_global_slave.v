@@ -34,12 +34,12 @@ module axi_lite_global_slave #(
                       input             s_axi_rready          ,
                       output reg        s_axi_rvalid          ,
                       //---- local control ----
-					  output            manager_start         ,
-					  output     [63:0] init_addr             ,
-					  output            new_job               ,
-					  output            job_done              ,
-					  input             job_start             ,
-					  output reg [KERNEL_NUM-1:0]       kernel_start,
+                      output            manager_start         ,
+                      output     [63:0] init_addr             ,
+                      output            new_job               ,
+                      output            job_done              ,
+                      input             job_start             ,
+                      output reg [KERNEL_NUM-1:0]       kernel_start,
                       input      [31:0] i_action_type         ,
                       input      [KERNEL_NUM-1:0]       kernel_complete,
                       output     o_interrupt
@@ -255,21 +255,21 @@ assign REG_interrupt_mask_rd = REG_interrupt_mask;
 
 always@(posedge clk or negedge rst_n)
     if(!rst_n)
-	    REG_init_addr_lo <= 32'b0;
+        REG_init_addr_lo <= 32'b0;
     else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_INIT_ADDR_LO))
-	    REG_init_addr_lo <= s_axi_wdata;
+        REG_init_addr_lo <= s_axi_wdata;
 
 always@(posedge clk or negedge rst_n)
     if(!rst_n)
-	    REG_init_addr_hi <= 32'b0;
+        REG_init_addr_hi <= 32'b0;
     else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_INIT_ADDR_HI))
-	    REG_init_addr_hi <= s_axi_wdata;
+        REG_init_addr_hi <= s_axi_wdata;
 
 always@(posedge clk or negedge rst_n)
     if(!rst_n)
-	    REG_global_control <= 32'b0;
+        REG_global_control <= 32'b0;
     else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_GLOBAL_CONTROL))
-	    REG_global_control <= s_axi_wdata;
+        REG_global_control <= s_axi_wdata;
 
 assign manager_start = REG_global_control[0];
 assign init_addr = {REG_init_addr_hi,REG_init_addr_lo};
@@ -280,31 +280,32 @@ genvar j;
 generate
   for (j = 0; j < KERNEL_NUM; j = j + 1) begin:kernel_busy_gen
     always@(posedge clk or negedge rst_n)
-	    if(!rst_n)
-	        kernel_busy[j] <= 1'b0;
-		else if(kernel_start[j] == 1'b1)
-	        kernel_busy[j] <= 1'b1;
-		else if(kernel_complete[j] == 1'b1)
-		    kernel_busy[j] <= 1'b0;
+        if(!rst_n)
+            kernel_busy[j] <= 1'b0;
+        else if(kernel_start[j] == 1'b1)
+            kernel_busy[j] <= 1'b1;
+        else if(kernel_complete_posedge[j] == 1'b1)
+            kernel_busy[j] <= 1'b0;
   end
 endgenerate
 
 always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-	    kernel_start <= 8'b0;
-	else if(job_start)
-	    case(kernel_busy)
-			8'b0xxxxxxx: kernel_start <= 8'b10000000;
-			8'b10xxxxxx: kernel_start <= 8'b01000000;
-			8'b110xxxxx: kernel_start <= 8'b00100000;
-			8'b1110xxxx: kernel_start <= 8'b00010000;
-			8'b11110xxx: kernel_start <= 8'b00001000;
-			8'b111110xx: kernel_start <= 8'b00000100;
-			8'b1111110x: kernel_start <= 8'b00000010;
-			8'b11111110: kernel_start <= 8'b00000001;
-			default:     kernel_start <= 8'b00000000;
-		endcase
-	else
-	    kernel_start <= 8'b00000000;
+    if(!rst_n)
+        kernel_start <= 8'b0;
+    else if(job_start) begin
+        casex(kernel_busy)
+            8'b0xxxxxxx: kernel_start <= 8'b10000000;
+            8'b10xxxxxx: kernel_start <= 8'b01000000;
+            8'b110xxxxx: kernel_start <= 8'b00100000;
+            8'b1110xxxx: kernel_start <= 8'b00010000;
+            8'b11110xxx: kernel_start <= 8'b00001000;
+            8'b111110xx: kernel_start <= 8'b00000100;
+            8'b1111110x: kernel_start <= 8'b00000010;
+            8'b11111110: kernel_start <= 8'b00000001;
+            default:     kernel_start <= 8'b00000000;
+        endcase
+        end
+    else
+        kernel_start <= 8'b00000000;
 
 endmodule

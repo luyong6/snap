@@ -18,17 +18,17 @@ module snap_action_shim #(
            parameter C_S_AXI_CTRL_REG_ADDR_WIDTH    = 32,
        
            // Parameters of Axi Master Bus Interface AXI_HOST_MEM ; to Host memory
-	   // 8-to-1 interconnect: kernel ID_WIDTH=1, 
-	   // output ID_WIDTH=4(awid, arid, bid, rid, but no wid)
-	   // No USER signals
-	   // LOCK width = 1
-	   // No WID
+       // 8-to-1 interconnect: kernel ID_WIDTH=1, 
+       // output ID_WIDTH=4(awid, arid, bid, rid, but no wid)
+       // No USER signals
+       // LOCK width = 1
+       // No WID
 
            parameter C_M_AXI_HOST_MEM_ID_WIDTH      = 4,
            parameter C_M_AXI_HOST_MEM_ADDR_WIDTH    = 64,
            parameter C_M_AXI_HOST_MEM_DATA_WIDTH    = 512,
 
-	   //Following USER signals are not used at all.
+       //Following USER signals are not used at all.
            parameter C_M_AXI_HOST_MEM_AWUSER_WIDTH  = 8,
            parameter C_M_AXI_HOST_MEM_ARUSER_WIDTH  = 8,
            parameter C_M_AXI_HOST_MEM_WUSER_WIDTH   = 1,
@@ -385,7 +385,7 @@ example_kernel #(
 
 
                         //---- AXI Lite bus interfaced with SNAP core ----
-			.s_axi_snap_baseaddr      (32'h200 + i*32'h100                ),
+            .s_axi_snap_baseaddr      (32'h200 + i*32'h100                ),
                           // AXI write address channel
                         .s_axi_snap_awready       (kernel_s_axi_snap_awready[i]       ),
                         .s_axi_snap_awaddr        (kernel_s_axi_snap_awaddr[i]        ),
@@ -415,9 +415,9 @@ example_kernel #(
                         .i_app_ready              (i_app_ready                        ),
                         .i_action_type            (i_action_type                      ),
                         .i_action_version         (i_action_version                   ),
-						.i_start                  (kernel_i_start[i]                  ),
-						.system_register          (system_register                    ),
-						.user_register            (user_register                      ),
+                        .i_start                  (kernel_i_start[i]                  ),
+                        .system_register          (system_register                    ),
+                        .user_register            (user_register                      ),
                         .o_complete               (kernel_o_complete[i]               )
                        );
 end
@@ -889,12 +889,12 @@ host_axi_lite_crossbar_0 axi_lite_X (
                                 .s_axi_rresp           (kernel_s_axi_snap_rresp[8]      ),//2b
                                 .s_axi_rready          (kernel_s_axi_snap_rready[8]     ),
                                 .s_axi_rvalid          (kernel_s_axi_snap_rvalid[8]     ),
-								.manager_start         (manager_start                   ),
-								.init_addr             (init_addr                       ),
-								.new_job               (new_job                         ),
-								.job_done              (job_done                        ),
-								.job_start             (job_start                       ),
-								.kernel_start          (kernel_i_start                  ),
+                                .manager_start         (manager_start                   ),
+                                .init_addr             (init_addr                       ),
+                                .new_job               (new_job                         ),
+                                .job_done              (job_done                        ),
+                                .job_start             (job_start                       ),
+                                .kernel_start          (kernel_i_start                  ),
                                 .i_action_type         (i_action_type                   ),
                                 .kernel_complete       (kernel_o_complete               ),
                                 .o_interrupt           (o_interrupt                     )
@@ -904,11 +904,11 @@ job_manager #(
 ) job_manager0 (
                         .clk                    (clk                    ),
                         .rst_n                  (rst_n                  ),
-						.init_addr              (init_addr              ),
-						.manager_start          (manager_start          ),
-						.new_job                (new_job                ),
-						.job_done               (job_done               ),
-						.job_start              (job_start              ),
+                        .init_addr              (init_addr              ),
+                        .manager_start          (manager_start          ),
+                        .new_job                (new_job                ),
+                        .job_done               (job_done               ),
+                        .job_start              (job_start              ),
 
                         //---- AXI bus interfaced with SNAP core ----
                           // AXI write address channel
@@ -959,8 +959,8 @@ job_manager #(
                         .m_axi_rlast       (job_m_axi_snap_rlast       ),
                         .m_axi_rvalid      (job_m_axi_snap_rvalid      ),
 
-						.system_register        (system_register            ),
-						.user_register          (user_register              )
-	    );
+                        .system_register        (system_register            ),
+                        .user_register          (user_register              )
+        );
 
 endmodule

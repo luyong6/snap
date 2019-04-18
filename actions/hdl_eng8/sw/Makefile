@@ -63,6 +63,7 @@ hdl_eng8_objs += $(MT_CPPOBJS)
 hdl_eng8: $(hdl_eng8_objs)
 
 projs += hdl_eng8
+projs += init
 
 #hdl_eng8: hdl_eng8.o something_else.o
 hdl_eng8: hdl_eng8.o $(MT_CPPOBJS)

@@ -161,9 +161,9 @@ module example_kernel #(
                         input                                          i_app_ready              ,
                         input      [31:0]                              i_action_type            ,
                         input      [31:0]                              i_action_version         ,
-						input                                          i_start                  ,
-						input      [511:0]                             system_register          ,
-						input      [511:0]                             user_register            ,
+                        input                                          i_start                  ,
+                        input      [511:0]                             system_register          ,
+                        input      [511:0]                             user_register            ,
                         output                                         o_complete
                        );
 
@@ -222,30 +222,30 @@ module example_kernel #(
  assign o_complete = (cnt == 'd0);
 
  always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-	    cnt <= 32'd0;
-	else if(i_start)
-	    cnt <= system_register[319:288];
-	else if((cnt != 'd0) & pattern_memcpy_done)
+    if(!rst_n)
+        cnt <= 32'd0;
+    else if(i_start)
+        cnt <= system_register[319:288];
+    else if((cnt != 'd0) & pattern_memcpy_done)
         cnt <= cnt - 1'b1;
 
  always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-	    src_addr <= 64'b0;
-	else if(i_start)
-	    src_addr <= system_register[127:64];
+    if(!rst_n)
+        src_addr <= 64'b0;
+    else if(i_start)
+        src_addr <= system_register[127:64];
 
  always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-	    dst_addr <= 64'b0;
-	else if(i_start)
-	    dst_addr <= system_register[191:128];
+    if(!rst_n)
+        dst_addr <= 64'b0;
+    else if(i_start)
+        dst_addr <= system_register[191:128];
 
  always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-	    length <= 32'b0;
-	else if(i_start)
-	    length <= system_register[63:32];
+    if(!rst_n)
+        length <= 32'b0;
+    else if(i_start)
+        length <= system_register[63:32];
 
 //---- registers hub for AXI Lite interface ----
  axi_lite_slave #(
@@ -276,10 +276,10 @@ module example_kernel #(
                                 .s_axi_rready          (s_axi_snap_rready     ),
                                 .s_axi_rvalid          (s_axi_snap_rvalid     ),
                       //---- local control ----
-                                .pattern_memcpy_enable (i_start               ),//pattern_memcpy_enable ),
-                                .pattern_source_address(src_addr_w            ),//64b
-                                .pattern_target_address(dst_addr_w            ),//64b
-                                .pattern_total_number  (length_w              ),//64b
+                                .pattern_memcpy_enable (                      ),//pattern_memcpy_enable ),
+                                .pattern_source_address(                      ),//src_addr_w            ),//64b
+                                .pattern_target_address(                      ),//dst_addr_w            ),//64b
+                                .pattern_total_number  (                      ),//length_w              ),//64b
                       //---- local status ----
                                 .pattern_memcpy_done   (pattern_memcpy_done   ),//input
                                 .axi_master_status     (axi_master_status     ),//input
@@ -393,10 +393,10 @@ module example_kernel #(
                  ) mmemcpy_engine (
                                    .clk            (clk                   ),
                                    .rst_n          (rst_n                 ),
-                                   .memcpy_src_addr(pattern_source_address),
-                                   .memcpy_tgt_addr(pattern_target_address),
-                                   .memcpy_len     (pattern_total_number  ), // in terms of bytes
-                                   .memcpy_start   (pattern_memcpy_enable ),
+                                   .memcpy_src_addr(src_addr_w            ),//pattern_source_address),
+                                   .memcpy_tgt_addr(dst_addr_w            ),//pattern_target_address),
+                                   .memcpy_len     (length_w              ),//pattern_total_number  ), // in terms of bytes
+                                   .memcpy_start   (i_start               ),//pattern_memcpy_enable ),
                                    .memcpy_done    (pattern_memcpy_done   ),
                                    .lcl_ibusy      (lcl_snap_ibusy        ),
                                    .lcl_istart     (lcl_snap_istart       ),
