@@ -1,0 +1,232 @@
+`timescale 1ns/1ps
+//Yanheng Lu
+//IBM CSL OpenPower
+//lyhlu@cn.ibm.com
+
+module job_manager #(
+    parameter KERNEL_NUM = 8,
+	parameter ID_WIDTH = 1,
+	parameter ARUSER_WIDTH = 8,
+	parameter AWUSER_WIDTH = 8,
+    parameter DATA_WIDTH = 512,
+    parameter ADDR_WIDTH = 64
+)(
+		input                               clk             ,
+        input                               rst_n           ,
+		input      [063:0]                  init_addr       ,
+		input                               manager_start   ,
+		input                               new_job         ,
+		input                               job_done        ,
+		output                              job_start       ,
+
+        //---- AXI bus ----
+           // AXI read address channel      
+        output     [ID_WIDTH - 1:0]       m_axi_arid    ,  
+        output reg [ADDR_WIDTH - 1:0]     m_axi_araddr  ,  
+        output reg [007:0]                m_axi_arlen   ,  
+        output     [002:0]                m_axi_arsize  ,  
+        output     [001:0]                m_axi_arburst ,  
+        output     [ARUSER_WIDTH - 1:0]   m_axi_aruser  , 
+        output     [003:0]                m_axi_arcache , 
+        output     [001:0]                m_axi_arlock  ,  
+        output     [002:0]                m_axi_arprot  , 
+        output     [003:0]                m_axi_arqos   , 
+        output     [003:0]                m_axi_arregion, 
+        output reg                        m_axi_arvalid , 
+        input                             m_axi_arready ,
+          // AXI read data channel          
+        output reg                        m_axi_rready  , 
+        input      [ID_WIDTH - 1:0]       m_axi_rid     ,
+        input      [DATA_WIDTH - 1:0]     m_axi_rdata   ,
+        input      [001:0]                m_axi_rresp   ,
+        input                             m_axi_rlast   ,
+        input                             m_axi_rvalid  ,
+
+           // AXI write address channel      
+        output     [ID_WIDTH - 1:0]       m_axi_awid    ,  
+        output     [ADDR_WIDTH - 1:0]     m_axi_awaddr  ,  
+        output     [007:0]                m_axi_awlen   ,  
+        output     [002:0]                m_axi_awsize  ,  
+        output     [001:0]                m_axi_awburst ,  
+        output     [003:0]                m_axi_awcache ,  
+        output     [001:0]                m_axi_awlock  ,  
+        output     [002:0]                m_axi_awprot  ,  
+        output     [003:0]                m_axi_awqos   ,  
+        output     [003:0]                m_axi_awregion,  
+        output     [AWUSER_WIDTH - 1:0]   m_axi_awuser  ,  
+        output                            m_axi_awvalid ,  
+        input                             m_axi_awready ,
+           // AXI write data channel         
+        output     [ID_WIDTH - 1:0]       m_axi_wid     , 
+        output     [DATA_WIDTH - 1:0]     m_axi_wdata   ,  
+        output     [(DATA_WIDTH/8) - 1:0] m_axi_wstrb   ,  
+        output                            m_axi_wlast   ,  
+        output                            m_axi_wvalid  ,  
+        input                             m_axi_wready  ,
+           // AXI write response channel     
+        output                            m_axi_bready  ,  
+        input      [ID_WIDTH - 1:0]       m_axi_bid     ,
+        input      [001:0]                m_axi_bresp   ,
+        input                             m_axi_bvalid  ,
+
+		//output
+        output reg [511:0]                system_register       ,
+        output reg [511:0]                user_register
+);
+
+parameter IDLE = 0;
+parameter READ = 1;
+parameter ANAL = 2;
+parameter MORE = 3;
+parameter DATA = 4;
+parameter RUN  = 5;
+parameter WAIT = 6;
+
+    reg [2:0] nxt_state;
+    reg [2:0] cur_state;
+	reg [63:0] next_addr;
+	wire       read_busy;
+	wire       read_done;
+	reg [11:0] user_length;
+
+    always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        cur_state <= IDLE;
+		else
+		    cur_state <= nxt_state;
+
+    always@(*)
+		case(cur_state)
+	    IDLE:
+            if(manager_start)
+	            nxt_state = READ;
+			else
+			    nxt_state = IDLE;
+		READ:
+		    if(m_axi_arvalid & m_axi_arready)
+		        nxt_state = ANAL;
+			else
+			    nxt_state = READ;
+		ANAL:
+		    if(read_done & (user_length < 'd8))
+	            nxt_state = RUN;
+			else if(read_done)
+	            nxt_state = MORE;
+			else
+			    nxt_state = ANAL;
+        MORE:
+		    if(m_axi_arvalid & m_axi_arready)
+	            nxt_state = DATA;
+	        else
+	            nxt_state = MORE;
+        DATA:
+		    if(read_done)
+	            nxt_state = RUN;
+			else
+			    nxt_state = DATA;
+		RUN:
+		    nxt_state = WAIT;
+        WAIT:
+		    if(new_job)
+	            nxt_state = READ;
+			else if(job_done & (next_addr == 'd0))
+	            nxt_state = IDLE;
+			else
+	            nxt_state = WAIT;
+		default:
+		    nxt_state = IDLE;
+		endcase
+
+    assign m_axi_awid     = 0;
+	assign m_axi_awaddr   = 0;
+	assign m_axi_awlen    = 8'b00000000;
+    assign m_axi_awsize   = 3'b000;
+	assign m_axi_awburst  = 2'b00;
+	assign m_axi_awcache  = 4'b0000;
+	assign m_axi_awlock   = 2'b00;
+	assign m_axi_awprot   = 3'b000;
+	assign m_axi_awqos    = 4'b0000;
+	assign m_axi_awregion = 4'b0000;
+	assign m_axi_awuser   = 0;
+    assign m_axi_awvalid  = 1'b0;
+	assign m_axi_wid      = 0;
+	assign m_axi_wdata    = 0;
+	assign m_axi_wstrb    = 0;
+	assign m_axi_wlast    = 1'b0;
+	assign m_axi_wvalid   = 1'b0;
+	assign m_axi_wready   = 1'b0;
+	assign m_axi_bready   = 1'b0;
+
+    assign m_axi_arid     = 0;
+    assign m_axi_arsize   = 3'd6; // 2^6=512
+    assign m_axi_arburst  = 2'd1; // INCR mode for memory access
+    assign m_axi_arcache  = 4'd3; // Normal Non-cacheable Bufferable
+    assign m_axi_aruser   = 0;//i_snap_context[ARUSER_WIDTH - 1:0]; 
+    assign m_axi_arprot   = 3'd0;
+    assign m_axi_arqos    = 4'd0;
+    assign m_axi_arregion = 4'd0; //?
+    assign m_axi_arlock   = 2'b00; // normal access
+
+	assign read_busy = 1'b0;
+	assign job_start = (cur_state == RUN);
+	assign read_done = m_axi_rvalid & m_axi_rlast & m_axi_rready;
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        next_addr <= 64'b0;
+		else if(cur_state == IDLE)
+	        next_addr <= init_addr;
+		else if((cur_state == ANAL) & read_done)
+	        next_addr <= m_axi_rdata[255:192];
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        user_register <= 512'b0;
+		else if((cur_state == ANAL) & read_done)
+	        user_register <= m_axi_rdata;
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        system_register <= 512'b0;
+		else if((cur_state == ANAL) & read_done)
+	        system_register <= m_axi_rdata;
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        user_length <= 12'b0;
+		else if((cur_state == ANAL) & read_done)
+	        user_length <= m_axi_rdata[267:256];
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        m_axi_arvalid <= 1'b0;
+		else if(cur_state == READ || cur_state == MORE)
+	        m_axi_arvalid <= 1'b1;
+		else if(m_axi_arready)
+	        m_axi_arvalid <= 1'b0;
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        m_axi_arlen <= 8'b0;
+		else if(cur_state == READ)
+	        m_axi_arlen <= 8'd1;
+		else if((cur_state == MORE))
+	        m_axi_arlen <= user_length;
+
+    always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        m_axi_araddr <= 64'd0;
+		else if(cur_state == READ)
+	        m_axi_araddr <= next_addr;
+		else if(cur_state == MORE)
+	        m_axi_araddr <= next_addr + 'd64;
+
+	always@(posedge clk or negedge rst_n)
+	    if(!rst_n)
+	        m_axi_rready <= 1'b0;
+		else if(read_busy)
+	        m_axi_rready <= 1'b0;
+	    else
+		    m_axi_rready <= 1'b1;
+
+endmodule

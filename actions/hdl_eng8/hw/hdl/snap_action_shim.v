@@ -174,7 +174,14 @@ module snap_action_shim #(
                        );
 
 wire      [KERNEL_NUM-1:0]         kernel_o_complete ;
-
+wire      [KERNEL_NUM-1:0]         kernel_i_start    ;
+wire                               new_job           ; 
+wire                               job_done          ;
+wire                               job_start         ;
+wire      [63:0]                   init_addr         ;
+wire                               manager_start     ;
+wire      [511:0]                  system_register   ;
+wire      [511:0]                  user_register     ;
 
                                                            // AXI write address channel
 wire                                                kernel_m_axi_snap_awid [KERNEL_NUM-1:0];
@@ -223,6 +230,54 @@ wire    [63:0]                                      kernel_m_axi_snap_rdata [KER
 wire    [1:0]                                       kernel_m_axi_snap_rresp [KERNEL_NUM-1:0];
 wire                                                kernel_m_axi_snap_rlast [KERNEL_NUM-1:0];
 wire                                                kernel_m_axi_snap_rvalid [KERNEL_NUM-1:0];
+
+                                                           // AXI write address channel
+wire                                                job_m_axi_snap_awid;
+wire   [C_M_AXI_HOST_MEM_ADDR_WIDTH -1 :0]          job_m_axi_snap_awaddr;
+wire   [0007:0]                                     job_m_axi_snap_awlen;
+wire   [0002:0]                                     job_m_axi_snap_awsize;
+wire   [0001:0]                                     job_m_axi_snap_awburst;
+wire   [0003:0]                                     job_m_axi_snap_awcache;
+wire                                                job_m_axi_snap_awlock;
+wire   [0002:0]                                     job_m_axi_snap_awprot;
+wire   [0003:0]                                     job_m_axi_snap_awqos;
+wire   [0003:0]                                     job_m_axi_snap_awregion;
+wire   [C_M_AXI_HOST_MEM_AWUSER_WIDTH - 1:0]        job_m_axi_snap_awuser;
+wire                                                job_m_axi_snap_awvalid;
+wire                                                job_m_axi_snap_awready;
+                                                           // AXI write data channel
+wire                                                job_m_axi_snap_wid;
+wire   [511:0]                                      job_m_axi_snap_wdata;
+wire   [63:0]                                       job_m_axi_snap_wstrb;
+wire                                                job_m_axi_snap_wlast;
+wire                                                job_m_axi_snap_wvalid;
+wire                                                job_m_axi_snap_wready;
+                                                           // AXI write response channel
+wire                                                job_m_axi_snap_bready;
+wire                                                job_m_axi_snap_bid;
+wire   [1:0]                                        job_m_axi_snap_bresp;
+wire                                                job_m_axi_snap_bvalid;
+                                                           // AXI read address channel
+wire                                                job_m_axi_snap_arid;
+wire   [C_M_AXI_HOST_MEM_ADDR_WIDTH-1:0]            job_m_axi_snap_araddr;
+wire   [0007:0]                                     job_m_axi_snap_arlen;
+wire   [0002:0]                                     job_m_axi_snap_arsize;
+wire   [0001:0]                                     job_m_axi_snap_arburst;
+wire   [C_M_AXI_HOST_MEM_ARUSER_WIDTH-1:0]          job_m_axi_snap_aruser;
+wire   [0003:0]                                     job_m_axi_snap_arcache;
+wire                                                job_m_axi_snap_arlock;
+wire   [0002:0]                                     job_m_axi_snap_arprot;
+wire   [0003:0]                                     job_m_axi_snap_arqos;
+wire   [0003:0]                                     job_m_axi_snap_arregion;
+wire                                                job_m_axi_snap_arvalid;
+wire                                                job_m_axi_snap_arready;
+                                                           // AXI read data channel
+wire                                                job_m_axi_snap_rready;
+wire                                                job_m_axi_snap_rid;
+wire    [511:0]                                     job_m_axi_snap_rdata;
+wire    [1:0]                                       job_m_axi_snap_rresp;
+wire                                                job_m_axi_snap_rlast;
+wire                                                job_m_axi_snap_rvalid;
 
 //////////////////////////////////////////////////////////////////////////
 // AXI lite. Has KERNEL_NUM + 1 slaves
@@ -360,6 +415,9 @@ example_kernel #(
                         .i_app_ready              (i_app_ready                        ),
                         .i_action_type            (i_action_type                      ),
                         .i_action_version         (i_action_version                   ),
+						.i_start                  (kernel_i_start[i]                  ),
+						.system_register          (system_register                    ),
+						.user_register            (user_register                      ),
                         .o_complete               (kernel_o_complete[i]               )
                        );
 end
@@ -681,6 +739,45 @@ host_axi_interconnect_0 axi_mm_X (
   .S07_AXI_RLAST (kernel_m_axi_snap_rlast[07]),
   .S07_AXI_RVALID (kernel_m_axi_snap_rvalid[07]),
   .S07_AXI_RREADY (kernel_m_axi_snap_rready[07]),
+  .S08_AXI_ARESET_OUT_N ( ),
+  .S08_AXI_ACLK (clk),
+  .S08_AXI_AWID (job_m_axi_snap_awid),
+  .S08_AXI_AWADDR (job_m_axi_snap_awaddr),
+  .S08_AXI_AWLEN (job_m_axi_snap_awlen),
+  .S08_AXI_AWSIZE (job_m_axi_snap_awsize),
+  .S08_AXI_AWBURST (job_m_axi_snap_awburst),
+  .S08_AXI_AWLOCK (job_m_axi_snap_awlock),
+  .S08_AXI_AWCACHE (job_m_axi_snap_awcache),
+  .S08_AXI_AWPROT (job_m_axi_snap_awprot),
+  .S08_AXI_AWQOS (job_m_axi_snap_awqos),
+  .S08_AXI_AWVALID (job_m_axi_snap_awvalid),
+  .S08_AXI_AWREADY (job_m_axi_snap_awready),
+  .S08_AXI_WDATA (job_m_axi_snap_wdata),
+  .S08_AXI_WSTRB (job_m_axi_snap_wstrb),
+  .S08_AXI_WLAST (job_m_axi_snap_wlast),
+  .S08_AXI_WVALID (job_m_axi_snap_wvalid),
+  .S08_AXI_WREADY (job_m_axi_snap_wready),
+  .S08_AXI_BID (job_m_axi_snap_bid),
+  .S08_AXI_BRESP (job_m_axi_snap_bresp),
+  .S08_AXI_BVALID (job_m_axi_snap_bvalid),
+  .S08_AXI_BREADY (job_m_axi_snap_bready),
+  .S08_AXI_ARID (job_m_axi_snap_arid),
+  .S08_AXI_ARADDR (job_m_axi_snap_araddr),
+  .S08_AXI_ARLEN (job_m_axi_snap_arlen),
+  .S08_AXI_ARSIZE (job_m_axi_snap_arsize),
+  .S08_AXI_ARBURST (job_m_axi_snap_arburst),
+  .S08_AXI_ARLOCK (job_m_axi_snap_arlock),
+  .S08_AXI_ARCACHE (job_m_axi_snap_arcache),
+  .S08_AXI_ARPROT (job_m_axi_snap_arprot),
+  .S08_AXI_ARQOS (job_m_axi_snap_arqos),
+  .S08_AXI_ARVALID (job_m_axi_snap_arvalid),
+  .S08_AXI_ARREADY (job_m_axi_snap_arready),
+  .S08_AXI_RID (job_m_axi_snap_rid),
+  .S08_AXI_RDATA (job_m_axi_snap_rdata),
+  .S08_AXI_RRESP (job_m_axi_snap_rresp),
+  .S08_AXI_RLAST (job_m_axi_snap_rlast),
+  .S08_AXI_RVALID (job_m_axi_snap_rvalid),
+  .S08_AXI_RREADY (job_m_axi_snap_rready),
   .M00_AXI_ARESET_OUT_N( ),
   .M00_AXI_ACLK(clk),
   .M00_AXI_AWID (m_axi_snap_awid),
@@ -792,9 +889,78 @@ host_axi_lite_crossbar_0 axi_lite_X (
                                 .s_axi_rresp           (kernel_s_axi_snap_rresp[8]      ),//2b
                                 .s_axi_rready          (kernel_s_axi_snap_rready[8]     ),
                                 .s_axi_rvalid          (kernel_s_axi_snap_rvalid[8]     ),
+								.manager_start         (manager_start                   ),
+								.init_addr             (init_addr                       ),
+								.new_job               (new_job                         ),
+								.job_done              (job_done                        ),
+								.job_start             (job_start                       ),
+								.kernel_start          (kernel_i_start                  ),
                                 .i_action_type         (i_action_type                   ),
                                 .kernel_complete       (kernel_o_complete               ),
-                                .o_interrupt           (o_interrupt                       )
+                                .o_interrupt           (o_interrupt                     )
         );
+
+job_manager #(
+) job_manager0 (
+                        .clk                    (clk                    ),
+                        .rst_n                  (rst_n                  ),
+						.init_addr              (init_addr              ),
+						.manager_start          (manager_start          ),
+						.new_job                (new_job                ),
+						.job_done               (job_done               ),
+						.job_start              (job_start              ),
+
+                        //---- AXI bus interfaced with SNAP core ----
+                          // AXI write address channel
+                        .m_axi_awid        (job_m_axi_snap_awid        ),
+                        .m_axi_awaddr      (job_m_axi_snap_awaddr      ),
+                        .m_axi_awlen       (job_m_axi_snap_awlen       ),
+                        .m_axi_awsize      (job_m_axi_snap_awsize      ),
+                        .m_axi_awburst     (job_m_axi_snap_awburst     ),
+                        .m_axi_awcache     (job_m_axi_snap_awcache     ),
+                        .m_axi_awlock      (job_m_axi_snap_awlock      ),
+                        .m_axi_awprot      (job_m_axi_snap_awprot      ),
+                        .m_axi_awqos       (job_m_axi_snap_awqos       ),
+                        .m_axi_awregion    (job_m_axi_snap_awregion    ),
+                        .m_axi_awuser      (job_m_axi_snap_awuser      ),
+                        .m_axi_awvalid     (job_m_axi_snap_awvalid     ),
+                        .m_axi_awready     (job_m_axi_snap_awready     ),
+                          // AXI write data channel
+                        .m_axi_wid         (job_m_axi_snap_wid         ),
+                        .m_axi_wdata       (job_m_axi_snap_wdata       ),
+                        .m_axi_wstrb       (job_m_axi_snap_wstrb       ),
+                        .m_axi_wlast       (job_m_axi_snap_wlast       ),
+                        .m_axi_wvalid      (job_m_axi_snap_wvalid      ),
+                        .m_axi_wready      (job_m_axi_snap_wready      ),
+                          // AXI write response channel
+                        .m_axi_bready     (job_m_axi_snap_bready     ),
+                        .m_axi_bid         (job_m_axi_snap_bid         ),
+                        .m_axi_bresp       (job_m_axi_snap_bresp       ),
+                        .m_axi_bvalid      (job_m_axi_snap_bvalid      ),
+                          // AXI read address channel
+                        .m_axi_arid        (job_m_axi_snap_arid        ),
+                        .m_axi_araddr      (job_m_axi_snap_araddr      ),
+                        .m_axi_arlen       (job_m_axi_snap_arlen       ),
+                        .m_axi_arsize      (job_m_axi_snap_arsize      ),
+                        .m_axi_arburst     (job_m_axi_snap_arburst     ),
+                        .m_axi_aruser      (job_m_axi_snap_aruser      ),
+                        .m_axi_arcache     (job_m_axi_snap_arcache     ),
+                        .m_axi_arlock      (job_m_axi_snap_arlock      ),
+                        .m_axi_arprot      (job_m_axi_snap_arprot      ),
+                        .m_axi_arqos       (job_m_axi_snap_arqos       ),
+                        .m_axi_arregion    (job_m_axi_snap_arregion    ),
+                        .m_axi_arvalid     (job_m_axi_snap_arvalid     ),
+                        .m_axi_arready     (job_m_axi_snap_arready     ),
+                          // AXI  ead data channel
+                        .m_axi_rready      (job_m_axi_snap_rready      ),
+                        .m_axi_rid         (job_m_axi_snap_rid         ),
+                        .m_axi_rdata       (job_m_axi_snap_rdata       ),
+                        .m_axi_rresp       (job_m_axi_snap_rresp       ),
+                        .m_axi_rlast       (job_m_axi_snap_rlast       ),
+                        .m_axi_rvalid      (job_m_axi_snap_rvalid      ),
+
+						.system_register        (system_register            ),
+						.user_register          (user_register              )
+	    );
 
 endmodule
