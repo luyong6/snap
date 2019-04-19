@@ -165,6 +165,13 @@ static int do_action (struct snap_card* dnc,
     VERBOSE0(" test!\n ");
     // start copy
     action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000001);
+    action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000000);
+    //done
+    while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 1){;};
+    VERBOSE0(" test!\n ");
+    sleep(10);
+    while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0){;};
+    VERBOSE0(" done!\n ");
         
     td = get_usec() - t_start;
     *elapsed = td;
@@ -222,10 +229,21 @@ int main (int argc, char* argv[])
 	struct snap_action* act = NULL;
 	unsigned long ioctl_data;
 	int patt_size = 4096*4096;
-        int frame_num = 1;
-	void* src  = alloc_mem(64, patt_size*frame_num);
-	void* dest = alloc_mem(64, patt_size*frame_num);
+    int delay = 100;
+	int* init = alloc_mem(64, 64);
+	void* src  = alloc_mem(64, patt_size);
+	void* dest = alloc_mem(64, patt_size);
 	uint64_t td;
+
+    *(init+1) = (uint32_t)delay;
+    *(init+2) = (uint32_t)((uint64_t)src & 0xffffffff);
+    *(init+3) = (uint32_t)((uint64_t)src >> 32);
+    *(init+4) = (uint32_t)((uint64_t)dest & 0xffffffff);
+    *(init+5) = (uint32_t)((uint64_t)dest >> 32);
+    *(init+6) = 0;
+    *(init+9) = (uint32_t)delay;
+    printf("src = %p\n",src);
+    printf("dest = %p\n",dest);
 
 	while (1) {
 		int option_index = 0;
@@ -320,6 +338,7 @@ int main (int argc, char* argv[])
 
 	act = get_action (dn, attach_flags, 5 * timeout);
 
+
 	if (NULL == act) {
 		goto __exit1;
 	}
@@ -327,7 +346,7 @@ int main (int argc, char* argv[])
 	VERBOSE0 ("Finish get action.\n");
 
     	VERBOSE0 ("Start memory copy.\n");
-    	rc = do_action (dn, src, dest, &td);
+    	rc = do_action (dn, init, dest, &td);
 
 	snap_detach_action (act);
 

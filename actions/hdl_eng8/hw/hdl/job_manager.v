@@ -80,7 +80,8 @@ parameter ANAL = 2;
 parameter MORE = 3;
 parameter DATA = 4;
 parameter RUN  = 5;
-parameter WAIT = 6;
+parameter TMP  = 6;
+parameter WAIT = 7;
 
     reg [2:0] nxt_state;
     reg [2:0] cur_state;
@@ -125,9 +126,14 @@ parameter WAIT = 6;
             else
                 nxt_state = DATA;
         RUN:
-            nxt_state = WAIT;
+		        nxt_state = TMP;
+        TMP:
+            if(!job_done)
+                nxt_state = WAIT;
+			else
+			    nxt_state = TMP;
         WAIT:
-            if(new_job)
+            if(new_job & (next_addr != 'd0))
                 nxt_state = READ;
             else if(job_done & (next_addr == 'd0))
                 nxt_state = IDLE;
@@ -182,13 +188,13 @@ parameter WAIT = 6;
     always@(posedge clk or negedge rst_n)
         if(!rst_n)
             user_register <= 512'b0;
-        else if((cur_state == ANAL) & read_done)
+        else if((cur_state == DATA) & read_done)
             user_register <= m_axi_rdata;
 
     always@(posedge clk or negedge rst_n)
         if(!rst_n)
             system_register <= 512'b0;
-        else if((cur_state == DATA) & read_done)
+        else if((cur_state == ANAL) & read_done)
             system_register <= m_axi_rdata;
 
     always@(posedge clk or negedge rst_n)
@@ -200,16 +206,16 @@ parameter WAIT = 6;
     always@(posedge clk or negedge rst_n)
         if(!rst_n)
             m_axi_arvalid <= 1'b0;
+        else if(m_axi_arready & m_axi_arvalid)
+            m_axi_arvalid <= 1'b0;
         else if(cur_state == READ || cur_state == MORE)
             m_axi_arvalid <= 1'b1;
-        else if(m_axi_arready)
-            m_axi_arvalid <= 1'b0;
 
     always@(posedge clk or negedge rst_n)
         if(!rst_n)
             m_axi_arlen <= 8'b0;
         else if(cur_state == READ)
-            m_axi_arlen <= 8'd1;
+            m_axi_arlen <= 8'd0;
         else if((cur_state == MORE))
             m_axi_arlen <= user_length;
 

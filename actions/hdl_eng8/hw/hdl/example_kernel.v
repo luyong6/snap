@@ -213,12 +213,12 @@ module example_kernel #(
  reg  [31:0] length;
  wire [63:0] src_addr_w;
  wire [63:0] dst_addr_w;
- wire [31:0] length_w;
+ wire [63:0] length_w;
  reg  [31:0] cnt;
 
  assign src_addr_w = src_addr;
  assign dst_addr_w = dst_addr;
- assign length_w = length;
+ assign length_w = {32'b0,length};
  assign o_complete = (cnt == 'd0);
 
  always@(posedge clk or negedge rst_n)

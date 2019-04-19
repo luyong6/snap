@@ -84,6 +84,7 @@ module axi_lite_global_slave #(
            ADDR_GLOBAL_CONTROL               = 32'h38,
            ADDR_INIT_ADDR_HI                 = 32'h3C,
            ADDR_INIT_ADDR_LO                 = 32'h40,
+           ADDR_GLOBAL_DONE                  = 32'h44,
            ADDR_SNAP_ACTION_TYPE             = 32'h10;
 
 
@@ -210,6 +211,7 @@ assign REG_interrupt_mask_rd = REG_interrupt_mask;
        ADDR_GLOBAL_CONTROL       : s_axi_rdata <= REG_global_control;
        ADDR_INIT_ADDR_HI         : s_axi_rdata <= REG_init_addr_hi;
        ADDR_INIT_ADDR_LO         : s_axi_rdata <= REG_init_addr_lo;
+       ADDR_GLOBAL_DONE          : s_axi_rdata <= {31'b0,job_done};
        default                   : s_axi_rdata <= 32'h5a5aa5a5;
      endcase
 
