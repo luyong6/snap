@@ -170,7 +170,8 @@ module snap_action_shim #(
                         input              i_app_ready              ,
                         input      [31:0]  i_action_type            ,
                         input      [31:0]  i_action_version         ,
-                        output             o_interrupt
+                        output             o_interrupt              ,
+                        input              i_interrupt_ack 
                        );
 
 wire      [KERNEL_NUM-1:0]         kernel_o_complete ;
@@ -794,7 +795,8 @@ host_axi_lite_crossbar_0 axi_lite_X (
                                 .s_axi_rvalid          (kernel_s_axi_snap_rvalid[8]     ),
                                 .i_action_type         (i_action_type                   ),
                                 .kernel_complete       (kernel_o_complete               ),
-                                .o_interrupt           (o_interrupt                       )
+                                .o_interrupt           (o_interrupt                     ),
+                                .i_interrupt_ack       (i_interrupt_ack                 )
         );
 
 endmodule
