@@ -29,7 +29,7 @@ generate_target all [get_files $src_dir/fifo_sync_256_64i64o/fifo_sync_256_64i64
 
 puts "                        Generating host_axi_interconnect_0 ......"
 create_ip -name axi_interconnect -vendor xilinx.com -library ip -version 1.7 -module_name host_axi_interconnect_0 >> $log_file
-set_property -dict [list CONFIG.NUM_SLAVE_PORTS {8} CONFIG.AXI_ADDR_WIDTH {64} CONFIG.INTERCONNECT_DATA_WIDTH {512} CONFIG.S00_AXI_DATA_WIDTH {64} CONFIG.S01_AXI_DATA_WIDTH {64} CONFIG.S02_AXI_DATA_WIDTH {64} CONFIG.S03_AXI_DATA_WIDTH {64} CONFIG.S04_AXI_DATA_WIDTH {64} CONFIG.S05_AXI_DATA_WIDTH {64} CONFIG.S06_AXI_DATA_WIDTH {64} CONFIG.S07_AXI_DATA_WIDTH {64} CONFIG.M00_AXI_DATA_WIDTH {512}] [get_ips host_axi_interconnect_0] >> $log_file
+set_property -dict [list CONFIG.NUM_SLAVE_PORTS {9} CONFIG.AXI_ADDR_WIDTH {64} CONFIG.INTERCONNECT_DATA_WIDTH {512} CONFIG.S00_AXI_DATA_WIDTH {64} CONFIG.S01_AXI_DATA_WIDTH {64} CONFIG.S02_AXI_DATA_WIDTH {64} CONFIG.S03_AXI_DATA_WIDTH {64} CONFIG.S04_AXI_DATA_WIDTH {64} CONFIG.S05_AXI_DATA_WIDTH {64} CONFIG.S06_AXI_DATA_WIDTH {64} CONFIG.S07_AXI_DATA_WIDTH {64} CONFIG.S08_AXI_DATA_WIDTH {512} CONFIG.M00_AXI_DATA_WIDTH {512}] [get_ips host_axi_interconnect_0] >> $log_file
 set_property generate_synth_checkpoint false [get_files $src_dir/host_axi_interconnect_0/host_axi_interconnect_0.xci] >> $log_file
 generate_target all [get_files $src_dir/host_axi_interconnect_0/host_axi_interconnect_0.xci] >> $log_file
 
