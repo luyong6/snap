@@ -35,6 +35,7 @@ module axi_lite_global_slave #(
                       output reg        s_axi_rvalid          ,
                       //---- local control ----
                       output            manager_start         ,
+                      output            run_mode              ,
                       output     [63:0] init_addr             ,
                       output            new_job               ,
                       output            job_done              ,
@@ -274,6 +275,7 @@ always@(posedge clk or negedge rst_n)
         REG_global_control <= s_axi_wdata;
 
 assign manager_start = REG_global_control[0];
+assign run_mode = REG_global_control[8];
 assign init_addr = {REG_init_addr_hi,REG_init_addr_lo};
 assign new_job = !(&kernel_busy);
 assign job_done = !(|kernel_busy);

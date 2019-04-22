@@ -162,6 +162,7 @@ module example_kernel #(
                         input      [31:0]                              i_action_type            ,
                         input      [31:0]                              i_action_version         ,
                         input                                          i_start                  ,
+                        input                                          run_mode                 ,
                         input      [511:0]                             system_register          ,
                         input      [511:0]                             user_register            ,
                         output                                         o_complete
@@ -214,12 +215,15 @@ module example_kernel #(
  wire [63:0] src_addr_w;
  wire [63:0] dst_addr_w;
  wire [63:0] length_w;
+ wire        real_start;
+ wire        mode0_done;
  reg  [31:0] cnt;
 
- assign src_addr_w = src_addr;
- assign dst_addr_w = dst_addr;
- assign length_w = {32'b0,length};
- assign o_complete = (cnt == 'd0);
+ assign src_addr_w = run_mode ? src_addr : pattern_source_address;
+ assign dst_addr_w = run_mode ? dst_addr : pattern_target_address;
+ assign length_w = run_mode ? {32'b0,length} : pattern_total_number;
+ assign real_start = run_mode ? i_start : pattern_memcpy_enable;
+ assign o_complete = run_mode ? (cnt == 'd0) : mode0_done;
 
  always@(posedge clk or negedge rst_n)
     if(!rst_n)
@@ -276,15 +280,15 @@ module example_kernel #(
                                 .s_axi_rready          (s_axi_snap_rready     ),
                                 .s_axi_rvalid          (s_axi_snap_rvalid     ),
                       //---- local control ----
-                                .pattern_memcpy_enable (                      ),//pattern_memcpy_enable ),
-                                .pattern_source_address(                      ),//src_addr_w            ),//64b
-                                .pattern_target_address(                      ),//dst_addr_w            ),//64b
-                                .pattern_total_number  (                      ),//length_w              ),//64b
+                                .pattern_memcpy_enable (pattern_memcpy_enable ),
+                                .pattern_source_address(pattern_source_address),//src_addr_w            ),//64b
+                                .pattern_target_address(pattern_target_address),//dst_addr_w            ),//64b
+                                .pattern_total_number  (pattern_total_number  ),//length_w              ),//64b
                       //---- local status ----
                                 .pattern_memcpy_done   (pattern_memcpy_done   ),//input
                                 .axi_master_status     (axi_master_status     ),//input
                                 .axi_master_error      (axi_master_error      ),//input
-                                .delayed_memcpy_done   (                      ),//output
+                                .delayed_memcpy_done   (mode0_done            ),//output
                       //---- snap status ----
                                 .i_app_ready           (i_app_ready           ),
                                 .i_action_type         (i_action_type         ),
@@ -396,7 +400,7 @@ module example_kernel #(
                                    .memcpy_src_addr(src_addr_w            ),//pattern_source_address),
                                    .memcpy_tgt_addr(dst_addr_w            ),//pattern_target_address),
                                    .memcpy_len     (length_w              ),//pattern_total_number  ), // in terms of bytes
-                                   .memcpy_start   (i_start               ),//pattern_memcpy_enable ),
+                                   .memcpy_start   (real_start            ),//pattern_memcpy_enable ),
                                    .memcpy_done    (pattern_memcpy_done   ),
                                    .lcl_ibusy      (lcl_snap_ibusy        ),
                                    .lcl_istart     (lcl_snap_istart       ),
