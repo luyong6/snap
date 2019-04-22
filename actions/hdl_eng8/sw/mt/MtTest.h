@@ -20,7 +20,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int mt_test_16_threads();
+enum test_mode {POLL = 0, INTERRUPT, INVALID};
+typedef struct {
+    int card_no;
+    int job_num;
+    int buf_num;
+    int memcopy_size;
+    int timeout;
+    enum test_mode mode;
+    bool debug;
+} test_params;
+
+void print_test_params (test_params in_params);
+
+int mt_test_16_threads (test_params in_test_params);
 #ifdef __cplusplus
 }
 #endif

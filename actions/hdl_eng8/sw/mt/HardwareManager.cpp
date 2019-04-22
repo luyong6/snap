@@ -26,6 +26,15 @@ HardwareManager::HardwareManager (int in_card_num)
 {
 }
 
+HardwareManager::HardwareManager (int in_card_num, int in_timeout)
+    : m_card_num (in_card_num),
+      m_capi_card (NULL),
+      m_capi_action (NULL),
+      m_attach_flags ((snap_action_flag_t)0),
+      m_timeout (in_timeout)
+{
+}
+
 HardwareManager::~HardwareManager()
 {
     cleanup();
@@ -89,8 +98,8 @@ void HardwareManager::cleanup()
 
 int HardwareManager::wait_interrupt()
 {
-    if (snap_action_wait_interrupt (m_capi_action, 1)) {
-        std::cout << "Retry waiting interrupt ... " << std::endl;
+    if (snap_action_wait_interrupt (m_capi_action, m_timeout)) {
+        //std::cout << "Retry waiting interrupt ... " << std::endl;
         return -1;
     }
 

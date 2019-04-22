@@ -31,6 +31,9 @@ public:
 
     // Check if all buffers have done their job
     virtual void check_buf_done();
+
+    // Use interrupt or poll to check buffer done?
+    bool interrupt;
 };
 
 typedef boost::shared_ptr<WorkerMemCopy> WorkerMemCopyPtr;

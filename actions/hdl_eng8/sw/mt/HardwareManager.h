@@ -31,6 +31,7 @@ class HardwareManager
 public:
     // The Constructor of hardware manager
     HardwareManager (int in_card_num);
+    HardwareManager (int in_card_num, int in_timeout);
 
     // The Destructor of hardware manager
     ~HardwareManager();

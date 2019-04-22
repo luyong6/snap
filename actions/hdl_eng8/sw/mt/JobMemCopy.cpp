@@ -41,6 +41,14 @@ JobMemCopy::JobMemCopy (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr)
 {
 }
 
+JobMemCopy::JobMemCopy (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr, bool in_debug)
+    : JobBase (in_id, in_buf_id, in_hw_mgr, in_debug),
+      m_src (NULL),
+      m_dest (NULL),
+      m_size (0)
+{
+}
+
 JobMemCopy::~JobMemCopy()
 {
 }
@@ -74,11 +82,11 @@ int JobMemCopy::run()
         return -1;
     }
 
-    if (0 != mem_init()) {
-        std::cerr << "Failed to perform memory init" << std::endl;
-        fail();
-        return -1;
-    }
+    //if (0 != mem_init()) {
+    //    std::cerr << "Failed to perform memory init" << std::endl;
+    //    fail();
+    //    return -1;
+    //}
 
     if (0 != mem_copy()) {
         std::cerr << "Failed to perform memory copy" << std::endl;

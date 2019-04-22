@@ -138,7 +138,7 @@ void BufMemCopy::work_with_job (JobPtr in_job)
     do {
         // Lock between buffers (each buffer would have a thread working on it).
         // At one time, only 1 thread is allowed to touching the AXI-lite bus
-        boost::lock_guard<boost::mutex> lock (BufMemCopy::m_global_mutex);
+        //boost::lock_guard<boost::mutex> lock (BufMemCopy::m_global_mutex);
 
         if (0 != job->run()) {
             std::cerr << "Failed to run the JobMemCopy" << std::endl;
@@ -151,14 +151,14 @@ void BufMemCopy::work_with_job (JobPtr in_job)
         std::cerr << "Failed to wait interrupt for JobMemCopy" << std::endl;
     }
 
-    std::cout << "Check memory on buf " << m_id << std::endl;
+    //std::cout << "Check memory on buf " << m_id << std::endl;
 
-    if (0 != job->mem_check()) {
-        std::cerr << "ERROR! Check failed on memory copy" << std::endl;
-        job->fail();
-        return;
-    }
+    //if (0 != job->mem_check()) {
+    //    std::cerr << "ERROR! Check failed on memory copy" << std::endl;
+    //    job->fail();
+    //    return;
+    //}
 
-    std::cout << "Finish memory checking on buf " << m_id << std::endl;
+    //std::cout << "Finish memory checking on buf " << m_id << std::endl;
     return;
 }

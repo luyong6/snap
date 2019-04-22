@@ -19,7 +19,8 @@ JobBase::JobBase()
     : m_id (0),
       m_buf_id (0),
       m_status (UNKNOWN),
-      m_hw_mgr (NULL)
+      m_hw_mgr (NULL),
+      m_debug (false)
 {
 }
 
@@ -27,7 +28,8 @@ JobBase::JobBase (int in_id, int in_buf_id)
     : m_id (in_id),
       m_buf_id (in_buf_id),
       m_status (UNKNOWN),
-      m_hw_mgr (NULL)
+      m_hw_mgr (NULL),
+      m_debug (false)
 {
 }
 
@@ -35,7 +37,17 @@ JobBase::JobBase (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr)
     : m_id (in_id),
       m_buf_id (in_buf_id),
       m_status (UNKNOWN),
-      m_hw_mgr (in_hw_mgr)
+      m_hw_mgr (in_hw_mgr),
+      m_debug (false)
+{
+}
+
+JobBase::JobBase (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr, bool in_debug)
+    : m_id (in_id),
+      m_buf_id (in_buf_id),
+      m_status (UNKNOWN),
+      m_hw_mgr (in_hw_mgr),
+      m_debug (in_debug)
 {
 }
 
@@ -70,6 +82,8 @@ HardwareManagerPtr JobBase::get_hw_mgr()
 
 void JobBase::logging (boost::format & in_fmt)
 {
-    std::cout << boost::format ("BUF[%d] - JOB[%d]: ") % m_buf_id % m_id
-              << in_fmt << std::endl;
+    if (m_debug) {
+        std::cout << boost::format ("BUF[%d] - JOB[%d]: ") % m_buf_id % m_id
+            << in_fmt << std::endl;
+    }
 }

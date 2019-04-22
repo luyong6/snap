@@ -33,6 +33,7 @@ public:
     JobMemCopy();
     JobMemCopy (int in_id, int in_buf_id);
     JobMemCopy (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr);
+    JobMemCopy (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr, bool in_debug);
 
     // Destructor of the job base
     ~JobMemCopy();

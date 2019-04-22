@@ -94,6 +94,9 @@ protected:
 
     // The timeout value before waiting an job to finish
     int m_timeout;
+
+    // If this buffer has stopped work
+    bool m_stopped;
 };
 
 typedef boost::shared_ptr<BufBase> BufPtr;

@@ -21,6 +21,7 @@
 WorkerMemCopy::WorkerMemCopy (HardwareManagerPtr in_hw_mgr)
     : WorkerBase (in_hw_mgr)
 {
+    interrupt = true;
 }
 
 WorkerMemCopy::~WorkerMemCopy()
@@ -29,6 +30,11 @@ WorkerMemCopy::~WorkerMemCopy()
 
 void WorkerMemCopy::check_buf_done()
 {
+    if (!interrupt) {
+        std::cout << "Poll mode is not supported yet!" << std::endl;
+        return;
+    }
+
     while (true) {
         bool all_done = true;
 
@@ -53,19 +59,19 @@ void WorkerMemCopy::check_buf_done()
                 std::cout << "WARNING! Interrupt mask is zero!" << std::endl;
             }
 
+            // Clear the interrupt
+            m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
+
             for (int i = 0; i < 8; i++) {
                 uint32_t m = (1 << i);
 
                 if (reg_data & m) {
                     // Make sure the transactions are finished before interrupt the buffers (threads)
-                    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
+                    //boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
                     m_bufs[ (i * 2)]->interrupt();
                     m_bufs[ (i * 2) + 1]->interrupt();
                 }
             }
-
-            // Clear the interrupt
-            m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
         }
     }
 }

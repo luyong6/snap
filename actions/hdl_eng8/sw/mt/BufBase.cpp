@@ -22,21 +22,24 @@ boost::mutex BufBase::m_global_mutex;
 BufBase::BufBase()
     : m_thread (NULL),
       m_id (0),
-      m_timeout (600)
+      m_timeout (600),
+      m_stopped (false)
 {
 }
 
 BufBase::BufBase (int in_id)
     : m_thread (NULL),
       m_id (in_id),
-      m_timeout (600)
+      m_timeout (600),
+      m_stopped (false)
 {
 }
 
 BufBase::BufBase (int in_id, int in_timeout)
     : m_thread (NULL),
       m_id (in_id),
-      m_timeout (in_timeout)
+      m_timeout (in_timeout),
+      m_stopped (false)
 {
 }
 
@@ -83,6 +86,8 @@ int BufBase::start()
 
 void BufBase::work()
 {
+    m_stopped = false;
+
     while (true) {
         if (m_jobs.size() > 0) {
             JobPtr job = m_jobs.front();
@@ -96,10 +101,19 @@ void BufBase::work()
 
 int BufBase::stop()
 {
+    if (m_stopped) {
+        return m_jobs.size();
+    }
+
     if (m_thread != NULL) {
         m_thread->interrupt();
-        //std::cout << "Stop buf " << m_id << std::endl;
     }
+
+    m_stopped = true;
+
+    std::cout << "BUF[" <<
+              std::setfill ('0') << std::setw (2)
+              << m_id << "] finished work!" << std::endl;
 
     // Return the number of remaining jobs
     return m_jobs.size();
@@ -110,7 +124,6 @@ void BufBase::join()
     if (m_thread != NULL) {
         m_thread->join();
     }
-
 }
 
 int BufBase::wait_interrupt()
@@ -122,7 +135,6 @@ int BufBase::wait_interrupt()
     while (0 < (time = m_cond.timed_wait (lock,
                                           boost::get_system_time()
                                           + boost::posix_time::seconds (time)))) {
-        std::cout << "Interrupt recieved for buffer " << std::dec << m_id << std::endl;
         return 0;
     }
 

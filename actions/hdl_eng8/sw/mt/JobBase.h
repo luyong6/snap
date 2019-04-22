@@ -37,6 +37,7 @@ public:
     JobBase();
     JobBase (int in_id, int in_buf_id);
     JobBase (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr);
+    JobBase (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr, bool in_debug);
 
     // Destructor of the job base
     ~JobBase();
@@ -74,6 +75,9 @@ protected:
 
     // The hardware manager
     HardwareManagerPtr m_hw_mgr;
+
+    // Flag to control debug message
+    bool m_debug;
 };
 
 typedef boost::shared_ptr<JobBase> JobPtr;
