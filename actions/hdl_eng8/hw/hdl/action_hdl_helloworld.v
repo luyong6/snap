@@ -163,7 +163,8 @@ module action_hdl_helloworld # (
                            // Other signals
                            input      [31:0]  i_action_type            ,
                            input      [31:0]  i_action_version         ,
-                           output             o_interrupt
+                           output             o_interrupt              ,
+                           input              i_interrupt_ack
                        );
 
  reg [0000:0] app_ready;
@@ -373,7 +374,8 @@ assign wid_fifo_ren = m_axi_snap_bvalid && m_axi_snap_bready;
                         .i_app_ready              (app_ready                ),
                         .i_action_type            (i_action_type            ),
                         .i_action_version         (i_action_version         ),
-                        .o_interrupt              (o_interrupt              )
+                        .o_interrupt              (o_interrupt              ),
+                        .i_interrupt_ack          (i_interrupt_ack          )
                        );
 
 endmodule

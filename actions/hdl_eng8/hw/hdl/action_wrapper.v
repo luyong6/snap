@@ -331,7 +331,8 @@ module action_wrapper #(
         .s_axi_snap_rvalid     (s_axi_ctrl_reg_rvalid),
         .i_action_type         (32'h10140003), //Should match ACTION_TYPE_HDL_ENG8 with sw
         .i_action_version      (32'h00000001), //Hardware Version
-        .o_interrupt           (interrupt)
+        .o_interrupt           (interrupt),
+        .i_interrupt_ack       (interrupt_ack)
     );
     
 endmodule

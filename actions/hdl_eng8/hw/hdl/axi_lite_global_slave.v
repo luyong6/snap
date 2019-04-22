@@ -36,7 +36,8 @@ module axi_lite_global_slave #(
                       //---- local control ----
                       input      [31:0] i_action_type         ,
                       input      [KERNEL_NUM-1:0]       kernel_complete,
-                      output     o_interrupt
+                      output     o_interrupt                  ,
+                      input      i_interrupt_ack
                       );
 
 
@@ -54,6 +55,8 @@ module axi_lite_global_slave #(
  reg [KERNEL_NUM-1:0] kernel_complete_prev;
  reg [KERNEL_NUM-1:0] pending_completed_kernels;
  wire [KERNEL_NUM-1:0] kernel_complete_posedge;
+ reg interrupt_req_reg;
+ reg interrupt_wait_soft_clear;
  ///////////////////////////////////////////////////
  //***********************************************//
  //>                REGISTERS                    <//
@@ -74,8 +77,6 @@ module axi_lite_global_slave #(
            ADDR_SNAP_ACTION_TYPE             = 32'h10;
 
 
-
-
 /***********************************************************************
 *                          interrupt generation                        *
 ***********************************************************************/
@@ -86,7 +87,32 @@ generate
   end
 endgenerate
 
- assign o_interrupt = |REG_interrupt_mask;
+ //assign o_interrupt = |REG_interrupt_mask;
+ assign o_interrupt = interrupt_req_reg;
+
+ always@(posedge clk or negedge rst_n)
+   if(~rst_n) begin
+     interrupt_req_reg <= 1'b0;
+     interrupt_wait_soft_clear <= 1'b0;
+   end
+   else begin
+     // Interrupt acknowledged, clear the interrupt request
+     if (i_interrupt_ack == 1'b1) begin
+       interrupt_req_reg <= 1'b0;
+       interrupt_wait_soft_clear <= 1'b1;
+     end
+     else if ((interrupt_wait_soft_clear == 1'b1) & (REG_interrupt_mask[KERNEL_NUM-1:0] == {KERNEL_NUM{1'b0}})) begin
+       interrupt_wait_soft_clear <= 1'b0;
+     end
+     else if (interrupt_wait_soft_clear == 1'b0) begin
+       interrupt_req_reg <= |REG_interrupt_mask;
+     end
+     else begin
+       interrupt_req_reg <= interrupt_req_reg;
+       interrupt_wait_soft_clear <= interrupt_wait_soft_clear;
+     end
+   end
+
  always@(posedge clk or negedge rst_n)
    if(~rst_n)
      kernel_complete_prev <= {KERNEL_NUM{1'b1}};
@@ -97,7 +123,7 @@ endgenerate
    if(~rst_n)
      REG_interrupt_mask <= 32'b0;
    else begin
-     if ((o_interrupt == 1'b0) & ~(s_axi_wvalid & s_axi_wready)) begin
+     if ((REG_interrupt_mask[KERNEL_NUM-1:0] == {KERNEL_NUM{1'b0}}) & ~(s_axi_wvalid & s_axi_wready)) begin
        REG_interrupt_mask[KERNEL_NUM-1:0] <= pending_completed_kernels;
      end
      else if (s_axi_wvalid & s_axi_wready) begin
