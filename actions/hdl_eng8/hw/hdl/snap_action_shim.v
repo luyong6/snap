@@ -181,6 +181,7 @@ wire                               job_done          ;
 wire                               job_start         ;
 wire      [63:0]                   init_addr         ;
 wire                               manager_start     ;
+wire                               run_mode          ;
 wire      [511:0]                  system_register   ;
 wire      [511:0]                  user_register     ;
 
@@ -417,6 +418,7 @@ example_kernel #(
                         .i_action_type            (i_action_type                      ),
                         .i_action_version         (i_action_version                   ),
                         .i_start                  (kernel_i_start[i]                  ),
+						.run_mode                 (run_mode                           ),
                         .system_register          (system_register                    ),
                         .user_register            (user_register                      ),
                         .o_complete               (kernel_o_complete[i]               )
@@ -891,6 +893,7 @@ host_axi_lite_crossbar_0 axi_lite_X (
                                 .s_axi_rready          (kernel_s_axi_snap_rready[8]     ),
                                 .s_axi_rvalid          (kernel_s_axi_snap_rvalid[8]     ),
                                 .manager_start         (manager_start                   ),
+                                .run_mode              (run_mode                        ),
                                 .init_addr             (init_addr                       ),
                                 .new_job               (new_job                         ),
                                 .job_done              (job_done                        ),

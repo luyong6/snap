@@ -164,7 +164,7 @@ static int do_action (struct snap_card* dnc,
 
     VERBOSE0(" test!\n ");
     // start copy
-    action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000001);
+    action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000101);
     action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000000);
     //done
     while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 1){;};
