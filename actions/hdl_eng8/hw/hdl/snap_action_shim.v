@@ -905,8 +905,7 @@ host_axi_lite_crossbar_0 axi_lite_X (
                                 .i_interrupt_ack       (i_interrupt_ack                 )
         );
 
-job_manager #(
-) job_manager0 (
+job_manager job_manager0 (
                         .clk                    (clk                    ),
                         .rst_n                  (rst_n                  ),
                         .init_addr              (init_addr              ),

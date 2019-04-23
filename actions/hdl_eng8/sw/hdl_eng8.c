@@ -40,9 +40,10 @@ static void usage (const char* prog)
             "  -C, --card <cardno>        can be (0...3)\n"
             "  -b, --buf-num <buf_num>    number of buffers.\n"
             "  -j, --job-num <job_num>    number of jobs per buffer.\n"
-            "  -s, --memcopy-size <memory copy size> number of bytes copied by each job\n"
+            "  -s, --memcopy-size <memory copy size> number of bytes copied by each job.\n"
             "  -t, --timeout              timeout in sec to wait for done.\n"
-            "  -p, --poll                 disable Interrupts, use polling to check done status\n"
+            "  -p, --poll                 disable Interrupts, use polling to check done status.\n"
+            "  -m, --job-manager          Use job manager mode.\n"
             "\n",
             prog);
 }
@@ -58,6 +59,7 @@ int main (int argc, char* argv[])
     int timeout = 1; // By default, 1 seconds to wait for card attachment and interrupt
     bool interrupt = true; // By default, use interrupt mode
     bool debug = false; // By default, disable debug mode
+    bool job_manager = false; // By default, don't use job manager
 
     // collecting the command line arguments
     while (1) {
@@ -69,6 +71,7 @@ int main (int argc, char* argv[])
             { "memcopy-size" , required_argument , NULL , 's' } ,
             { "timeout"      , required_argument , NULL , 't' } ,
             { "poll"         , no_argument       , NULL , 'P' } ,
+            { "job-manager"  , no_argument       , NULL , 'm' } ,
             { "version"      , no_argument       , NULL , 'V' } ,
             { "verbose"      , no_argument       , NULL , 'v' } ,
             { "help"         , no_argument       , NULL , 'h' } ,
@@ -76,7 +79,7 @@ int main (int argc, char* argv[])
         };
 
         ch = getopt_long (argc, argv,
-                          "C:b:j:s:t:PVvh",
+                          "C:b:j:s:t:PmVvh",
                           long_options, &option_index);
 
         if (ch == -1) {
@@ -106,6 +109,10 @@ int main (int argc, char* argv[])
 
         case 'P':
             interrupt = false;
+            break;
+
+        case 'm':
+            job_manager = true;
             break;
 
         case 'V':
@@ -142,7 +149,13 @@ int main (int argc, char* argv[])
     params.debug = debug;
     print_test_params (params);
 
-    int rc = mt_test_16_threads (params);
+    int rc = 0;
+    
+    if (job_manager) {
+        mt_jm_test_16_threads (params);
+    } else {
+        mt_test_16_threads (params);
+    }
 
     return rc;
 } // main end

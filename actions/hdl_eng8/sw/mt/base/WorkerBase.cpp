@@ -16,10 +16,12 @@
 
 #include "boost/make_shared.hpp"
 #include "WorkerBase.h"
+#include "hdl_eng8.h"
 
 WorkerBase::WorkerBase (HardwareManagerPtr in_hw_mgr)
     : m_check_thread (NULL),
-      m_hw_mgr (in_hw_mgr)
+      m_hw_mgr (in_hw_mgr),
+      m_job_manager_en (false)
 {
 }
 
@@ -45,6 +47,12 @@ void WorkerBase::delete_buf (int buf_id)
 
 void WorkerBase::start()
 {
+    if (m_job_manager_en) {
+        m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000100);
+    } else {
+        m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000000);
+    }
+
     for (int i = 0; i < (int)m_bufs.size(); i++) {
         m_bufs[i]->start();
     }

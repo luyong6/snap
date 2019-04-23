@@ -42,13 +42,14 @@ BUILDDIR = ./obj
 TOBUILDDIR = $(addprefix $(BUILDDIR)/,$(1))
 MKDIR = if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 
-CPPFLAGS += -I./mt
 MT_CPPSRCS := $(shell find ./mt -name "*.cpp")
 MT_CPPOBJS := $(call TOBUILDDIR,$(patsubst %.cpp,%.o,$(MT_CPPSRCS)))
 MT_CPPFLAGS := --std=c++11
-MT_INCLUDES := -I. -I./mt -I../../../software/include
+MT_INCLUDES := -I. -I./mt -I./mt/base -I./mt/memcopy -I./mt/test -I./mt/utils -I../../../software/include
+MT_INCLUDES += -I./mt/memcopy_jm
 MT_COMPILEFLAGS := -W -Wall -Wno-multichar -Wno-unused-parameter -Wno-unused-function -Werror-implicit-function-declaration
 MT_OPTFLAGS := -O3
+CPPFLAGS += $(MT_INCLUDES)
 
 all: all_build
 

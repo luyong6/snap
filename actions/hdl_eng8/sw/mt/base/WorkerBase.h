@@ -51,6 +51,9 @@ protected:
 
     // The hardware manager
     HardwareManagerPtr m_hw_mgr;
+
+    // Is job manager enabled
+    bool m_job_manager_en;
 };
 
 typedef boost::shared_ptr<WorkerBase> WorkerPtr;

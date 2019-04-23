@@ -19,19 +19,29 @@
 #include "hdl_eng8.h"
 
 WorkerMemCopy::WorkerMemCopy (HardwareManagerPtr in_hw_mgr)
-    : WorkerBase (in_hw_mgr)
+    : WorkerBase (in_hw_mgr),
+      m_interrupt (true)
 {
-    interrupt = true;
+    m_job_manager_en = false;
 }
 
 WorkerMemCopy::~WorkerMemCopy()
 {
 }
 
+void WorkerMemCopy::set_mode (bool in_interrupt)
+{
+    m_interrupt = in_interrupt;
+}
+
 void WorkerMemCopy::check_buf_done()
 {
-    if (!interrupt) {
+    if (!m_interrupt) {
         std::cout << "Poll mode is not supported yet!" << std::endl;
+        for (int i = 0; i < (int)m_bufs.size(); i++) {
+            m_bufs[i]->stop();
+        }
+
         return;
     }
 

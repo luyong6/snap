@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef MT_TEST_H
-#define MT_TEST_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-enum test_mode {POLL = 0, INTERRUPT, INVALID};
-typedef struct {
-    int card_no;
-    int job_num;
-    int buf_num;
-    int memcopy_size;
-    int timeout;
-    enum test_mode mode;
-    bool debug;
-} test_params;
-
-void print_test_params (test_params in_params);
-
-int mt_test_16_threads (test_params in_test_params);
-#ifdef __cplusplus
-}
-#endif
+#ifndef JOBDESCRIPTOR_H_h
+#define JOBDESCRIPTOR_H_h
+// Descriptor used by hardware job manager
+typedef struct
+{
+    uint32_t header;
+    uint32_t copy_length;
+    uint64_t mem_src;
+    uint64_t mem_dest;
+    uint64_t next_desc;
+    uint32_t user_config_len;
+    uint32_t user_config;
+} JobDescriptor;
 
 #endif

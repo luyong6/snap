@@ -41,4 +41,10 @@
 //Additional waiting time (in cycles)
 #define ACTION_ADD_WAIT_CYCLE          0x58
 
+// Registers for job manager mode
+#define ACTION_GLOBAL_CONTROL          0x38
+#define ACTION_INIT_ADDR_HI            0x3C
+#define ACTION_INIT_ADDR_LO            0x40
+#define ACTION_GLOBAL_DONE             0x44
+
 #endif	/* __HDL_ENG8__ */

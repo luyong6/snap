@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-#ifndef WORKERMEMCOPY_H_h
-#define WORKERMEMCOPY_H_h
+#ifndef MT_TEST_H
+#define MT_TEST_H
 
-#include <iostream>
-#include "WorkerBase.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+enum test_mode {POLL = 0, INTERRUPT, INVALID};
+typedef struct {
+    int card_no;
+    int job_num;
+    int buf_num;
+    int memcopy_size;
+    int timeout;
+    enum test_mode mode;
+    bool debug;
+} test_params;
 
-class WorkerMemCopy : public WorkerBase
-{
-public:
-    // Constructor of the worker base
-    WorkerMemCopy (HardwareManagerPtr in_hw_mgr);
+void print_test_params (test_params in_params);
 
-    // Destructor of the worker base
-    ~WorkerMemCopy();
-
-    // Check if all buffers have done their job
-    virtual void check_buf_done();
-
-    // Use interrupt or poll to check buffer done?
-    bool interrupt;
-};
-
-typedef boost::shared_ptr<WorkerMemCopy> WorkerMemCopyPtr;
+int mt_test_16_threads (test_params in_test_params);
+int mt_jm_test_16_threads (test_params in_test_params);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
