@@ -12,13 +12,13 @@ module snap_action_shim #(
            //parameter C_M_AXI_CARD_MEM0_WUSER_WIDTH  = 1,
            //parameter C_M_AXI_CARD_MEM0_RUSER_WIDTH  = 1,
            //parameter C_M_AXI_CARD_MEM0_BUSER_WIDTH  = 1,
-       
+
            // Parameters of Axi Slave Bus Interface AXI_CTRL_REG
            parameter C_S_AXI_CTRL_REG_DATA_WIDTH    = 32,
            parameter C_S_AXI_CTRL_REG_ADDR_WIDTH    = 32,
-       
+
            // Parameters of Axi Master Bus Interface AXI_HOST_MEM ; to Host memory
-       // 8-to-1 interconnect: kernel ID_WIDTH=1, 
+       // 8-to-1 interconnect: kernel ID_WIDTH=1,
        // output ID_WIDTH=4(awid, arid, bid, rid, but no wid)
        // No USER signals
        // LOCK width = 1
@@ -37,52 +37,52 @@ module snap_action_shim #(
 
 )(
                         input              clk                      ,
-                        input              rst_n                    , 
-                                                         
+                        input              rst_n                    ,
 
-                        //---- AXI bus interfaced with SNAP core ----               
-                          // AXI write address channel      
-                        output    [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_awid          ,  
-                        output    [C_M_AXI_HOST_MEM_ADDR_WIDTH - 1:0] m_axi_snap_awaddr        ,  
-                        output    [0007:0] m_axi_snap_awlen         ,  
-                        output    [0002:0] m_axi_snap_awsize        ,  
-                        output    [0001:0] m_axi_snap_awburst       ,  
-                        output    [0003:0] m_axi_snap_awcache       ,  
-                        output             m_axi_snap_awlock        ,  
-                        output    [0002:0] m_axi_snap_awprot        ,  
-                        output    [0003:0] m_axi_snap_awqos         ,  
-                        output    [0003:0] m_axi_snap_awregion      ,  
-                        output    [C_M_AXI_HOST_MEM_AWUSER_WIDTH - 1:0] m_axi_snap_awuser        ,  
-                        output             m_axi_snap_awvalid       ,  
+
+                        //---- AXI bus interfaced with SNAP core ----
+                          // AXI write address channel
+                        output    [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_awid          ,
+                        output    [C_M_AXI_HOST_MEM_ADDR_WIDTH - 1:0] m_axi_snap_awaddr        ,
+                        output    [0007:0] m_axi_snap_awlen         ,
+                        output    [0002:0] m_axi_snap_awsize        ,
+                        output    [0001:0] m_axi_snap_awburst       ,
+                        output    [0003:0] m_axi_snap_awcache       ,
+                        output             m_axi_snap_awlock        ,
+                        output    [0002:0] m_axi_snap_awprot        ,
+                        output    [0003:0] m_axi_snap_awqos         ,
+                        output    [0003:0] m_axi_snap_awregion      ,
+                        output    [C_M_AXI_HOST_MEM_AWUSER_WIDTH - 1:0] m_axi_snap_awuser        ,
+                        output             m_axi_snap_awvalid       ,
                         input              m_axi_snap_awready       ,
-                          // AXI write data channel         
-                        output    [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_wid           , 
-                        output    [C_M_AXI_HOST_MEM_DATA_WIDTH - 1:0] m_axi_snap_wdata         ,  
-                        output    [(C_M_AXI_HOST_MEM_DATA_WIDTH/8) - 1:0] m_axi_snap_wstrb         ,  
-                        output             m_axi_snap_wlast         ,  
-                        output             m_axi_snap_wvalid        ,  
+                          // AXI write data channel
+                        output    [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_wid           ,
+                        output    [C_M_AXI_HOST_MEM_DATA_WIDTH - 1:0] m_axi_snap_wdata         ,
+                        output    [(C_M_AXI_HOST_MEM_DATA_WIDTH/8) - 1:0] m_axi_snap_wstrb         ,
+                        output             m_axi_snap_wlast         ,
+                        output             m_axi_snap_wvalid        ,
                         input              m_axi_snap_wready        ,
-                          // AXI write response channel     
-                        output             m_axi_snap_bready        ,  
+                          // AXI write response channel
+                        output             m_axi_snap_bready        ,
                         input     [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_bid           ,
                         input     [0001:0] m_axi_snap_bresp         ,
                         input              m_axi_snap_bvalid        ,
-                          // AXI read address channel       
-                        output    [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_arid          ,  
-                        output    [C_M_AXI_HOST_MEM_ADDR_WIDTH - 1:0] m_axi_snap_araddr        ,  
-                        output    [0007:0] m_axi_snap_arlen         ,  
-                        output    [0002:0] m_axi_snap_arsize        ,  
-                        output    [0001:0] m_axi_snap_arburst       ,  
-                        output    [C_M_AXI_HOST_MEM_ARUSER_WIDTH - 1:0] m_axi_snap_aruser        , 
-                        output    [0003:0] m_axi_snap_arcache       , 
-                        output             m_axi_snap_arlock        ,  
-                        output    [0002:0] m_axi_snap_arprot        , 
-                        output    [0003:0] m_axi_snap_arqos         , 
-                        output    [0003:0] m_axi_snap_arregion      , 
-                        output             m_axi_snap_arvalid       , 
+                          // AXI read address channel
+                        output    [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_arid          ,
+                        output    [C_M_AXI_HOST_MEM_ADDR_WIDTH - 1:0] m_axi_snap_araddr        ,
+                        output    [0007:0] m_axi_snap_arlen         ,
+                        output    [0002:0] m_axi_snap_arsize        ,
+                        output    [0001:0] m_axi_snap_arburst       ,
+                        output    [C_M_AXI_HOST_MEM_ARUSER_WIDTH - 1:0] m_axi_snap_aruser        ,
+                        output    [0003:0] m_axi_snap_arcache       ,
+                        output             m_axi_snap_arlock        ,
+                        output    [0002:0] m_axi_snap_arprot        ,
+                        output    [0003:0] m_axi_snap_arqos         ,
+                        output    [0003:0] m_axi_snap_arregion      ,
+                        output             m_axi_snap_arvalid       ,
                         input              m_axi_snap_arready       ,
-                          // AXI read data channel          
-                        output             m_axi_snap_rready        , 
+                          // AXI read data channel
+                        output             m_axi_snap_rready        ,
                         input     [C_M_AXI_HOST_MEM_ID_WIDTH - 1:0] m_axi_snap_rid           ,
                         input     [C_M_AXI_HOST_MEM_DATA_WIDTH - 1:0] m_axi_snap_rdata         ,
                         input     [0001:0] m_axi_snap_rresp         ,
@@ -90,49 +90,49 @@ module snap_action_shim #(
                         input              m_axi_snap_rvalid        ,
 
                         /*
-                        //---- AXI bus interfaced with DDR ----               
-                          // AXI write address channel      
-                        output    [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_awid           ,  
-                        output    [C_M_AXI_CARD_MEM0_ADDR_WIDTH - 1:0] m_axi_ddr_awaddr         ,  
-                        output    [0007:0] m_axi_ddr_awlen          ,  
-                        output    [0002:0] m_axi_ddr_awsize         ,  
-                        output    [0001:0] m_axi_ddr_awburst        ,  
-                        output    [0003:0] m_axi_ddr_awcache        ,  
-                        output    [0001:0] m_axi_ddr_awlock         ,  
-                        output    [0002:0] m_axi_ddr_awprot         ,  
-                        output    [0003:0] m_axi_ddr_awqos          ,  
-                        output    [0003:0] m_axi_ddr_awregion       ,  
-                        output    [C_M_AXI_CARD_MEM0_AWUSER_WIDTH - 1:0] m_axi_ddr_awuser         ,  
-                        output             m_axi_ddr_awvalid        ,  
+                        //---- AXI bus interfaced with DDR ----
+                          // AXI write address channel
+                        output    [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_awid           ,
+                        output    [C_M_AXI_CARD_MEM0_ADDR_WIDTH - 1:0] m_axi_ddr_awaddr         ,
+                        output    [0007:0] m_axi_ddr_awlen          ,
+                        output    [0002:0] m_axi_ddr_awsize         ,
+                        output    [0001:0] m_axi_ddr_awburst        ,
+                        output    [0003:0] m_axi_ddr_awcache        ,
+                        output    [0001:0] m_axi_ddr_awlock         ,
+                        output    [0002:0] m_axi_ddr_awprot         ,
+                        output    [0003:0] m_axi_ddr_awqos          ,
+                        output    [0003:0] m_axi_ddr_awregion       ,
+                        output    [C_M_AXI_CARD_MEM0_AWUSER_WIDTH - 1:0] m_axi_ddr_awuser         ,
+                        output             m_axi_ddr_awvalid        ,
                         input              m_axi_ddr_awready        ,
-                          // AXI write data channel         
-                        output    [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_wid            , 
-                        output    [C_M_AXI_CARD_MEM0_DATA_WIDTH - 1:0] m_axi_ddr_wdata          ,  
-                        output    [(C_M_AXI_CARD_MEM0_DATA_WIDTH/8) - 1:0] m_axi_ddr_wstrb          ,  
-                        output             m_axi_ddr_wlast          ,  
-                        output             m_axi_ddr_wvalid         ,  
+                          // AXI write data channel
+                        output    [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_wid            ,
+                        output    [C_M_AXI_CARD_MEM0_DATA_WIDTH - 1:0] m_axi_ddr_wdata          ,
+                        output    [(C_M_AXI_CARD_MEM0_DATA_WIDTH/8) - 1:0] m_axi_ddr_wstrb          ,
+                        output             m_axi_ddr_wlast          ,
+                        output             m_axi_ddr_wvalid         ,
                         input              m_axi_ddr_wready         ,
-                          // AXI write response channel     
-                        output             m_axi_ddr_bready         ,  
+                          // AXI write response channel
+                        output             m_axi_ddr_bready         ,
                         input     [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_bid            ,
                         input     [0001:0] m_axi_ddr_bresp          ,
                         input              m_axi_ddr_bvalid         ,
-                          // AXI read address channel       
-                        output    [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_arid           ,  
-                        output    [C_M_AXI_CARD_MEM0_ADDR_WIDTH - 1:0] m_axi_ddr_araddr         ,  
-                        output    [0007:0] m_axi_ddr_arlen          ,  
-                        output    [0002:0] m_axi_ddr_arsize         ,  
-                        output    [0001:0] m_axi_ddr_arburst        ,  
-                        output    [C_M_AXI_HOST_MEM_ARUSER_WIDTH - 1:0] m_axi_ddr_aruser         , 
-                        output    [0003:0] m_axi_ddr_arcache        , 
-                        output    [0001:0] m_axi_ddr_arlock         ,  
-                        output    [0002:0] m_axi_ddr_arprot         , 
-                        output    [0003:0] m_axi_ddr_arqos          , 
-                        output    [0003:0] m_axi_ddr_arregion       , 
-                        output             m_axi_ddr_arvalid        , 
+                          // AXI read address channel
+                        output    [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_arid           ,
+                        output    [C_M_AXI_CARD_MEM0_ADDR_WIDTH - 1:0] m_axi_ddr_araddr         ,
+                        output    [0007:0] m_axi_ddr_arlen          ,
+                        output    [0002:0] m_axi_ddr_arsize         ,
+                        output    [0001:0] m_axi_ddr_arburst        ,
+                        output    [C_M_AXI_HOST_MEM_ARUSER_WIDTH - 1:0] m_axi_ddr_aruser         ,
+                        output    [0003:0] m_axi_ddr_arcache        ,
+                        output    [0001:0] m_axi_ddr_arlock         ,
+                        output    [0002:0] m_axi_ddr_arprot         ,
+                        output    [0003:0] m_axi_ddr_arqos          ,
+                        output    [0003:0] m_axi_ddr_arregion       ,
+                        output             m_axi_ddr_arvalid        ,
                         input              m_axi_ddr_arready        ,
-                          // AXI  ead data channel          
-                        output             m_axi_ddr_rready         , 
+                          // AXI  ead data channel
+                        output             m_axi_ddr_rready         ,
                         input     [C_M_AXI_CARD_MEM0_ID_WIDTH - 1:0] m_axi_ddr_rid            ,
                         input     [C_M_AXI_CARD_MEM0_DATA_WIDTH - 1:0] m_axi_ddr_rdata          ,
                         input     [0001:0] m_axi_ddr_rresp          ,
@@ -140,13 +140,13 @@ module snap_action_shim #(
                         input              m_axi_ddr_rvalid         ,
                         */
 
-                        //---- AXI Lite bus interfaced with SNAP core ----               
+                        //---- AXI Lite bus interfaced with SNAP core ----
                           // AXI write address channel
-                        output             s_axi_snap_awready       ,   
+                        output             s_axi_snap_awready       ,
                         input     [C_S_AXI_CTRL_REG_ADDR_WIDTH - 1:0] s_axi_snap_awaddr        ,
                         input     [0002:0] s_axi_snap_awprot        ,
                         input              s_axi_snap_awvalid       ,
-                          // axi write data channel             
+                          // axi write data channel
                         output             s_axi_snap_wready        ,
                         input     [C_S_AXI_CTRL_REG_DATA_WIDTH - 1:0] s_axi_snap_wdata         ,
                         input     [(C_S_AXI_CTRL_REG_DATA_WIDTH/8) - 1:0] s_axi_snap_wstrb         ,
@@ -165,7 +165,7 @@ module snap_action_shim #(
                         output    [0001:0] s_axi_snap_rresp         ,
                         input              s_axi_snap_rready        ,
                         output             s_axi_snap_rvalid        ,
-                        
+
                         // Other signals
                         input              i_app_ready              ,
                         input      [31:0]  i_action_type            ,
@@ -175,7 +175,7 @@ module snap_action_shim #(
 
 wire      [KERNEL_NUM-1:0]         kernel_o_complete ;
 wire      [KERNEL_NUM-1:0]         kernel_i_start    ;
-wire                               new_job           ; 
+wire                               new_job           ;
 wire                               job_done          ;
 wire                               job_start         ;
 wire      [63:0]                   init_addr         ;
@@ -322,7 +322,7 @@ genvar i;
 generate
 for (i = 0; i < KERNEL_NUM; i = i + 1) begin:k_inst
 
-example_kernel #( 
+example_kernel #(
            .ENGINE_AXI_S_LITE_DATA_WIDTH    ( 32 ),
            .ENGINE_AXI_S_LITE_ADDR_WIDTH    ( 32 ),
 
@@ -386,7 +386,7 @@ example_kernel #(
 
 
                         //---- AXI Lite bus interfaced with SNAP core ----
-            .s_axi_snap_baseaddr      (32'h200 + i*32'h100                ),
+                        .s_axi_snap_baseaddr      (32'h200 + i*32'h100                ),
                           // AXI write address channel
                         .s_axi_snap_awready       (kernel_s_axi_snap_awready[i]       ),
                         .s_axi_snap_awaddr        (kernel_s_axi_snap_awaddr[i]        ),
@@ -417,7 +417,7 @@ example_kernel #(
                         .i_action_type            (i_action_type                      ),
                         .i_action_version         (i_action_version                   ),
                         .i_start                  (kernel_i_start[i]                  ),
-						.run_mode                 (run_mode                           ),
+                        .run_mode                 (run_mode                           ),
                         .system_register          (system_register                    ),
                         .user_register            (user_register                      ),
                         .o_complete               (kernel_o_complete[i]               )

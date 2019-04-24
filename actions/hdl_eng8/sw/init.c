@@ -141,6 +141,7 @@ static int do_action (struct snap_card* dnc,
                     )
 {
     int rc;
+    int cntprint;
     uint64_t t_start;   /* time in usec */
     uint64_t td = 0;    /* Diff time in usec */
 
@@ -167,10 +168,23 @@ static int do_action (struct snap_card* dnc,
     action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000101);
     action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000100);
     //done
-    while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 1){;};
-    VERBOSE0(" test!\n ");
-    sleep(10);
     while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0){;};
+    cntprint = action_read(dnc, ACTION_KERNEL0_CNT);
+    printf("KERNEL0 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL1_CNT);
+    printf("KERNEL1 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL2_CNT);
+    printf("KERNEL2 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL3_CNT);
+    printf("KERNEL3 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL4_CNT);
+    printf("KERNEL4 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL5_CNT);
+    printf("KERNEL5 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL6_CNT);
+    printf("KERNEL6 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL7_CNT);
+    printf("KERNEL7 count = %d \n",cntprint);
     VERBOSE0(" done!\n ");
         
     td = get_usec() - t_start;

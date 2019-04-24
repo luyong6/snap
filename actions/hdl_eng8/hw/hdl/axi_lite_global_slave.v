@@ -77,6 +77,16 @@ module axi_lite_global_slave #(
  //                                               //
  ///////////////////////////////////////////////////
 
+ reg [31:0] cnt0;
+ reg [31:0] cnt1;
+ reg [31:0] cnt2;
+ reg [31:0] cnt3;
+ reg [31:0] cnt4;
+ reg [31:0] cnt5;
+ reg [31:0] cnt6;
+ reg [31:0] cnt7;
+ reg        real_done;
+ reg        job_done_r;
 
 //---- parameters ----
  // Register addresses arrangement
@@ -86,10 +96,15 @@ module axi_lite_global_slave #(
            ADDR_INIT_ADDR_HI                 = 32'h3C,
            ADDR_INIT_ADDR_LO                 = 32'h40,
            ADDR_GLOBAL_DONE                  = 32'h44,
+           ADDR_KERNEL0_CNT                  = 32'h48,
+           ADDR_KERNEL1_CNT                  = 32'h4C,
+           ADDR_KERNEL2_CNT                  = 32'h50,
+           ADDR_KERNEL3_CNT                  = 32'h54,
+           ADDR_KERNEL4_CNT                  = 32'h58,
+           ADDR_KERNEL5_CNT                  = 32'h5C,
+           ADDR_KERNEL6_CNT                  = 32'h60,
+           ADDR_KERNEL7_CNT                  = 32'h64,
            ADDR_SNAP_ACTION_TYPE             = 32'h10;
-
-
-
 
 /***********************************************************************
 *                          interrupt generation                        *
@@ -109,6 +124,84 @@ endgenerate
      kernel_complete_prev <= kernel_complete;
 
  always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        job_done_r <= 1'b0;
+    else
+        job_done_r <= job_done;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        real_done <= 1'b0;
+    else if(manager_start)
+        real_done <= 1'b0;
+    else if(job_done & !job_done_r)
+        real_done <= 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt0 <= 32'b0;
+    else if(manager_start)
+        cnt0 <= 32'b0;
+    else if(kernel_complete_posedge[0])
+        cnt0 <= cnt0 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt1 <= 32'b0;
+    else if(manager_start)
+        cnt1 <= 32'b0;
+    else if(kernel_complete_posedge[1])
+        cnt1 <= cnt1 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt2 <= 32'b0;
+    else if(manager_start)
+        cnt2 <= 32'b0;
+    else if(kernel_complete_posedge[2])
+        cnt2 <= cnt2 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt3 <= 32'b0;
+    else if(manager_start)
+        cnt3 <= 32'b0;
+    else if(kernel_complete_posedge[3])
+        cnt3 <= cnt3 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt4 <= 32'b0;
+    else if(manager_start)
+        cnt4 <= 32'b0;
+    else if(kernel_complete_posedge[4])
+        cnt4 <= cnt4 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt5 <= 32'b0;
+    else if(manager_start)
+        cnt5 <= 32'b0;
+    else if(kernel_complete_posedge[5])
+        cnt5 <= cnt5 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt6 <= 32'b0;
+    else if(manager_start)
+        cnt6 <= 32'b0;
+    else if(kernel_complete_posedge[6])
+        cnt6 <= cnt6 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt7 <= 32'b0;
+    else if(manager_start)
+        cnt7 <= 32'b0;
+    else if(kernel_complete_posedge[7])
+        cnt7 <= cnt7 + 1'b1;
+
+ always@(posedge clk or negedge rst_n)
    if(~rst_n)
      REG_interrupt_mask <= 32'b0;
    else begin
@@ -117,7 +210,7 @@ endgenerate
      end
      else if (s_axi_wvalid & s_axi_wready) begin
        case(write_address)
-         ADDR_GLOBAL_INTR_CONTROL       : begin 
+         ADDR_GLOBAL_INTR_CONTROL       : begin
            REG_interrupt_mask <= REG_interrupt_mask & ~write_data_interrupt_control;
          end
          default :;
@@ -179,7 +272,7 @@ endgenerate
      end
    else if(s_axi_wvalid & s_axi_wready)
      case(write_address)
-       ADDR_GLOBAL_INTR_CONTROL       : begin 
+       ADDR_GLOBAL_INTR_CONTROL       : begin
          REG_interrupt_control <= write_data_interrupt_control;
        end
        //ADDR_GLOBAL_INTR_MASK          : REG_interrupt_mask    <= write_data_interrupt_mask;
@@ -189,7 +282,7 @@ endgenerate
 
 always @(posedge clk or negedge rst_n) begin
     if (~rst_n) begin
-        completion_q <= 0; 
+        completion_q <= 0;
     end
 end
 
@@ -212,7 +305,15 @@ assign REG_interrupt_mask_rd = REG_interrupt_mask;
        ADDR_GLOBAL_CONTROL       : s_axi_rdata <= REG_global_control;
        ADDR_INIT_ADDR_HI         : s_axi_rdata <= REG_init_addr_hi;
        ADDR_INIT_ADDR_LO         : s_axi_rdata <= REG_init_addr_lo;
-       ADDR_GLOBAL_DONE          : s_axi_rdata <= {31'b0,job_done};
+       ADDR_GLOBAL_DONE          : s_axi_rdata <= {31'b0,real_done};
+       ADDR_KERNEL0_CNT          : s_axi_rdata <= cnt0;
+       ADDR_KERNEL1_CNT          : s_axi_rdata <= cnt1;
+       ADDR_KERNEL2_CNT          : s_axi_rdata <= cnt2;
+       ADDR_KERNEL3_CNT          : s_axi_rdata <= cnt3;
+       ADDR_KERNEL4_CNT          : s_axi_rdata <= cnt4;
+       ADDR_KERNEL5_CNT          : s_axi_rdata <= cnt5;
+       ADDR_KERNEL6_CNT          : s_axi_rdata <= cnt6;
+       ADDR_KERNEL7_CNT          : s_axi_rdata <= cnt7;
        default                   : s_axi_rdata <= 32'h5a5aa5a5;
      endcase
 

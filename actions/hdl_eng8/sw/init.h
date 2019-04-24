@@ -30,5 +30,13 @@
 #define ACTION_INIT_ADDR_HI            0x3C
 #define ACTION_INIT_ADDR_LO            0x40
 #define ACTION_GLOBAL_DONE             0x44
+#define ACTION_KERNEL0_CNT             0x48
+#define ACTION_KERNEL1_CNT             0x4C
+#define ACTION_KERNEL2_CNT             0x50
+#define ACTION_KERNEL3_CNT             0x54
+#define ACTION_KERNEL4_CNT             0x58
+#define ACTION_KERNEL5_CNT             0x5C
+#define ACTION_KERNEL6_CNT             0x60
+#define ACTION_KERNEL7_CNT             0x64
 
 #endif	/* __SNAP_INIT__ */
