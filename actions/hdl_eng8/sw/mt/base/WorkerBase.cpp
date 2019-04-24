@@ -49,15 +49,13 @@ void WorkerBase::start()
 {
     if (m_job_manager_en) {
         m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000100);
-        uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
-        m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
     } else {
         m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000000);
-        // Clear the interrupt status
-        uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
-        m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
-
     }
+
+    // Clear the interrupt status
+    uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
+    m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
 
     for (int i = 0; i < (int)m_bufs.size(); i++) {
         m_bufs[i]->start();

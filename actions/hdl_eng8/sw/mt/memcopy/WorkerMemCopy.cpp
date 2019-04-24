@@ -16,6 +16,7 @@
 
 #include <boost/chrono.hpp>
 #include "WorkerMemCopy.h"
+#include "BufMemCopy.h"
 #include "hdl_eng8.h"
 
 WorkerMemCopy::WorkerMemCopy (HardwareManagerPtr in_hw_mgr)
@@ -34,10 +35,26 @@ void WorkerMemCopy::set_mode (bool in_interrupt)
     m_interrupt = in_interrupt;
 }
 
+int WorkerMemCopy::check()
+{
+    int rc = 0;
+
+    for (int i = 0; i < (int)m_bufs.size(); i++) {
+        BufMemCopyPtr buf = boost::dynamic_pointer_cast<BufMemCopy> (m_bufs[i]);
+
+        if (buf->check()) {
+            rc = -1;
+        }
+    }
+
+    return rc;
+}
+
 void WorkerMemCopy::check_buf_done()
 {
     if (!m_interrupt) {
         std::cout << "Poll mode is not supported yet!" << std::endl;
+
         for (int i = 0; i < (int)m_bufs.size(); i++) {
             m_bufs[i]->stop();
         }
@@ -77,7 +94,6 @@ void WorkerMemCopy::check_buf_done()
 
                 if (reg_data & m) {
                     // Make sure the transactions are finished before interrupt the buffers (threads)
-                    //boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
                     m_bufs[ (i * 2)]->interrupt();
                     m_bufs[ (i * 2) + 1]->interrupt();
                 }

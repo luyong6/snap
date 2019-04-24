@@ -52,6 +52,9 @@ public:
     // Work with the jobs
     virtual void work_with_job (JobPtr in_job);
 
+    // Check the result of work
+    int check();
+
 private:
     // Source address
     void* m_src;

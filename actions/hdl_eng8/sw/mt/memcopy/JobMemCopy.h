@@ -59,6 +59,9 @@ public:
     // Check the memory result
     int mem_check();
 
+    // Allocate memory buffers
+    int allocate (size_t in_size);
+
 private:
     // The address of the source buffer
     void* m_src;
@@ -71,6 +74,9 @@ private:
 
     // Calculate the register address for each job
     uint32_t reg_addr (uint32_t in_offset);
+
+    // Helper function to alloc aligned memory buffers
+    void* aalloc (int align, int size);
 };
 
 typedef boost::shared_ptr<JobMemCopy> JobMemCopyPtr;

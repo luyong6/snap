@@ -390,7 +390,7 @@ static void hw_snap_card_free(struct snap_card *card)
 	__free(card);
 }
 
-static int hw_wait_irq(struct snap_card *card, int timeout_sec, int expect_irq)
+static int hw_wait_irq(struct snap_card *card, int timeout_sec, int expect_irq, int timeout_usec)
 {
 	fd_set  set;
 	struct  timeval timeout;
@@ -403,7 +403,7 @@ static int hw_wait_irq(struct snap_card *card, int timeout_sec, int expect_irq)
 __hw_wait_irq_retry:
 	if (!cxl_event_pending(card->afu_h)) {
 		timeout.tv_sec = timeout_sec;
-		timeout.tv_usec = 0;
+		timeout.tv_usec = timeout_usec;
 		FD_ZERO(&set);
 		FD_SET(card->afu_fd, &set);
 
@@ -561,7 +561,7 @@ static struct snap_action *hw_attach_action(struct snap_card *card,
 	}
 
 	if (SNAP_ATTACH_IRQ & card->flags)
-		rc = hw_wait_irq(card, timeout_sec, SNAP_ATTACH_IRQ_NUM);
+		rc = hw_wait_irq(card, timeout_sec, SNAP_ATTACH_IRQ_NUM, 0);
 	else {
 		t0 = tget_ms();
 		dt = 0;
@@ -898,10 +898,10 @@ int snap_action_is_idle(struct snap_action *action, int *rc)
 	return (action_data & ACTION_CONTROL_IDLE) == ACTION_CONTROL_IDLE;
 }
 
-int snap_action_wait_interrupt(struct snap_action *action, int timeout)
+int snap_action_wait_interrupt(struct snap_action *action, int timeout_sec, int timeout_usec)
 {
     struct snap_card *card = (struct snap_card *)action;
-    return hw_wait_irq(card, timeout, SNAP_ACTION_IRQ_NUM);
+    return hw_wait_irq(card, timeout_sec, SNAP_ACTION_IRQ_NUM, timeout_usec);
 }
 
 int snap_action_completed(struct snap_action *action, int *rc, int timeout)
@@ -913,7 +913,7 @@ int snap_action_completed(struct snap_action *action, int *rc, int timeout)
 	int dt, timeout_ms;
 
 	if (SNAP_ACTION_DONE_IRQ & card->flags) {
-		hw_wait_irq(card, timeout, SNAP_ACTION_IRQ_NUM);
+		hw_wait_irq(card, timeout, SNAP_ACTION_IRQ_NUM, 0);
 		snap_mmio_write32(card, ACTION_IRQ_STATUS, ACTION_IRQ_STATUS_DONE);
 		snap_mmio_write32(card, ACTION_IRQ_APP, 0);
 		snap_mmio_write32(card, ACTION_IRQ_CONTROL, ACTION_IRQ_CONTROL_OFF);

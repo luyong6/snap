@@ -55,6 +55,13 @@ JobMemCopyJM::JobMemCopyJM (int in_id, int in_buf_id, HardwareManagerPtr in_hw_m
 
 JobMemCopyJM::~JobMemCopyJM()
 {
+    if (NULL != m_src) {
+        free (m_src);
+    }
+
+    if (NULL != m_dest) {
+        free (m_dest);
+    }
 }
 
 void JobMemCopyJM::set_src (void* in_src)
@@ -86,12 +93,6 @@ int JobMemCopyJM::run()
         return -1;
     }
 
-    //if (0 != mem_init()) {
-    //    std::cerr << "Failed to perform memory init" << std::endl;
-    //    fail();
-    //    return -1;
-    //}
-
     if (0 != mem_copy()) {
         std::cerr << "Failed to perform memory copy" << std::endl;
         fail();
@@ -108,7 +109,7 @@ void JobMemCopyJM::set_worker (WorkerMemCopyJMPtr in_worker)
     m_worker = in_worker;
 }
 
-WorkerMemCopyJMPtr JobMemCopyJM::get_worker ()
+WorkerMemCopyJMPtr JobMemCopyJM::get_worker()
 {
     return m_worker;
 }
@@ -129,15 +130,8 @@ int JobMemCopyJM::mem_init()
 {
     uint8_t* ptr_src = (uint8_t*) m_src;
     uint8_t* ptr_tgt = (uint8_t*) m_dest;
-    size_t cnt = 0;
-    srand ((unsigned) time (0));
-
-    do {
-        * (ptr_src++) = rand() % 256;
-        * (ptr_tgt++) = 0;
-
-        cnt++;
-    } while (cnt < m_size);
+    memset (ptr_src, m_id ^ m_buf_id, m_size);
+    memset (ptr_tgt, 0, m_size);
 
     return 0;
 }
@@ -149,15 +143,8 @@ int JobMemCopyJM::mem_copy()
         return -1;
     }
 
-    //logging (boost::format ("%s") % "------ Memory Copy Start -------- ");
-    //logging (boost::format ("SOURCE ADDR:      %#X") % (uint64_t)m_src);
-    //logging (boost::format ("DESTINATION ADDR: %#X") % (uint64_t)m_dest);
-    //logging (boost::format ("COPY SIZE:        %d") % m_size);
-
-    //logging (boost::format ("%s") % "    Prepare job descriptor!");
-
-    JobDescriptor* job_desc_ptr = (JobDescriptor*) aalloc (64, sizeof(JobDescriptor));
-    memset (job_desc_ptr, 0, sizeof(JobDescriptor));
+    JobDescriptor* job_desc_ptr = (JobDescriptor*) aalloc (64, sizeof (JobDescriptor));
+    memset (job_desc_ptr, 0, sizeof (JobDescriptor));
 
     job_desc_ptr->copy_length = (uint32_t) m_size;
     job_desc_ptr->mem_src = (uint64_t) m_src;
@@ -166,7 +153,6 @@ int JobMemCopyJM::mem_copy()
 
     m_worker->append_job_desc (job_desc_ptr);
 
-    //logging (boost::format ("%s") % "    Job descriptor appended!");
     return 0;
 }
 
@@ -177,19 +163,43 @@ int JobMemCopyJM::mem_check()
     size_t cnt = 0;
     int rc = 0;
 
-    do {
-        if (* (ptr_src) != * (ptr_tgt)) {
-            logging (boost::format ("MISCOMPARE on addr %d") % cnt);
+    logging (boost::format ("%s -- size %d") % "Checking!" % m_size);
+
+    if (0 == memcmp (ptr_src, ptr_tgt, m_size)) {
+        logging (boost::format ("%s") % "Check PASSED!");
+    } else {
+        do {
             logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
             logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
+
+            if (* (ptr_src) != * (ptr_tgt)) {
+                logging (boost::format ("MISCOMPARE on addr %d") % cnt);
+                logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
+                logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
+                rc = -1;
+            }
+
             ptr_src++;
             ptr_tgt++;
-            rc = 1;
-        }
-
-        cnt++;
-    } while (cnt < m_size);
+            cnt++;
+        } while (cnt < m_size);
+    }
 
     return rc;
+}
+
+int JobMemCopyJM::allocate (size_t in_size)
+{
+    // Allocate 4096-byte aligned memory
+    m_src = aalloc (64, in_size);
+    m_dest = aalloc (64, in_size);
+
+    m_size = in_size;
+
+    if (m_src == NULL || m_dest == NULL) {
+        return -1;
+    }
+
+    return 0;
 }
 

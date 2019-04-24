@@ -16,6 +16,7 @@
 
 #include <boost/chrono.hpp>
 #include "WorkerMemCopyJM.h"
+#include "BufMemCopyJM.h"
 #include "hdl_eng8.h"
 
 WorkerMemCopyJM::WorkerMemCopyJM (HardwareManagerPtr in_hw_mgr, bool in_debug)
@@ -34,6 +35,7 @@ WorkerMemCopyJM::WorkerMemCopyJM (HardwareManagerPtr in_hw_mgr, bool in_debug)
 WorkerMemCopyJM::~WorkerMemCopyJM()
 {
     JobDescriptor* job_desc_ptr = (JobDescriptor*) m_job_desc_head;
+
     while (job_desc_ptr != NULL) {
         JobDescriptor* next_job_desc_ptr = (JobDescriptor*) job_desc_ptr->next_desc;
         free (job_desc_ptr);
@@ -44,6 +46,26 @@ WorkerMemCopyJM::~WorkerMemCopyJM()
 void WorkerMemCopyJM::set_mode (bool in_interrupt)
 {
     m_interrupt = in_interrupt;
+}
+
+void WorkerMemCopyJM::set_job_start_threshold (int in_threshold)
+{
+    m_job_start_threshold = in_threshold;
+}
+
+int WorkerMemCopyJM::check()
+{
+    int rc = 0;
+
+    for (int i = 0; i < (int)m_bufs.size(); i++) {
+        BufMemCopyJMPtr buf = boost::dynamic_pointer_cast<BufMemCopyJM> (m_bufs[i]);
+
+        if (buf->check()) {
+            rc = -1;
+        }
+    }
+
+    return rc;
 }
 
 void WorkerMemCopyJM::append_job_desc (void* in_job_desc)
@@ -66,16 +88,17 @@ void WorkerMemCopyJM::dump_job_desc()
 {
     int count = 0;
     JobDescriptor* job_desc_ptr = (JobDescriptor*) m_job_desc_head;
+
     while (job_desc_ptr != NULL) {
-        std::cout << "DESC[" << std::setfill('0') << std::setw(4) << std::dec << count << "]" << std::endl;
-        std::cout << "PTR       0x" << std::setfill('0') << std::setw(4) << std::hex << (uint64_t) job_desc_ptr << std::endl;
-        std::cout << "HEADER    0x" << std::setfill('0') << std::setw(4) << std::hex << (uint32_t) job_desc_ptr->header << std::endl;
-        std::cout << "LENGTH    0x" << std::setfill('0') << std::setw(4) << std::hex << (uint32_t) job_desc_ptr->copy_length << std::endl;
-        std::cout << "SRC       0x" << std::setfill('0') << std::setw(8) << std::hex << (uint64_t) job_desc_ptr->mem_src << std::endl;
-        std::cout << "DEST      0x" << std::setfill('0') << std::setw(8) << std::hex << (uint64_t) job_desc_ptr->mem_dest << std::endl;
-        std::cout << "NEXT      0x" << std::setfill('0') << std::setw(8) << std::hex << (uint64_t) job_desc_ptr->next_desc << std::endl;
-        std::cout << "USER LEN  0x" << std::setfill('0') << std::setw(4) << std::hex << (uint32_t) job_desc_ptr->user_config_len << std::endl;
-        std::cout << "USER CONF 0x" << std::setfill('0') << std::setw(4) << std::hex << (uint32_t) job_desc_ptr->user_config << std::endl;
+        std::cout << "DESC[" << std::setfill ('0') << std::setw (4) << std::dec << count << "]" << std::endl;
+        std::cout << "PTR       0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint64_t) job_desc_ptr << std::endl;
+        std::cout << "HEADER    0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->header << std::endl;
+        std::cout << "LENGTH    0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->copy_length << std::endl;
+        std::cout << "SRC       0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->mem_src << std::endl;
+        std::cout << "DEST      0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->mem_dest << std::endl;
+        std::cout << "NEXT      0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->next_desc << std::endl;
+        std::cout << "USER LEN  0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_len << std::endl;
+        std::cout << "USER CONF 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config << std::endl;
         job_desc_ptr = (JobDescriptor*) job_desc_ptr->next_desc;
         count ++;
     };
@@ -87,19 +110,21 @@ void WorkerMemCopyJM::check_buf_done()
         std::cout << "Interrupt mode is not supported yet!" << std::endl;
     } else {
         int count = 0;
+
         while (true) {
             // Start the job manager when the number of job desc reaches threshold
             if (!m_job_started) {
                 boost::lock_guard<boost::mutex> lock (m_job_desc_mutex);
+
                 if (m_job_desc_count >= m_job_start_threshold) {
-                    m_hw_mgr->reg_write (ACTION_INIT_ADDR_HI, (uint32_t)(((uint64_t)m_job_desc_head) >> 32));
-                    m_hw_mgr->reg_write (ACTION_INIT_ADDR_LO, (uint32_t)(((uint64_t)m_job_desc_head) & 0xFFFFFFFF));
+                    m_hw_mgr->reg_write (ACTION_INIT_ADDR_HI, (uint32_t) (((uint64_t)m_job_desc_head) >> 32));
+                    m_hw_mgr->reg_write (ACTION_INIT_ADDR_LO, (uint32_t) (((uint64_t)m_job_desc_head) & 0xFFFFFFFF));
                     m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000101);
                     m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000100);
                     m_job_started = true;
 
                     if (m_debug) {
-                        dump_job_desc ();
+                        dump_job_desc();
                     }
 
                     std::cout << "Worker -- Job started with " << std::dec << m_job_desc_count << " jobs" << std::endl;
@@ -108,10 +133,12 @@ void WorkerMemCopyJM::check_buf_done()
                 boost::this_thread::interruption_point();
             } else {
                 uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_DONE) & 0x00000001;
+
                 // Poll the status done bit
                 if (1 == reg_data) {
                     count++;
-                    if (count >= 50) {
+
+                    if (count >= 2) {
                         break;
                     }
                 } else {
@@ -122,13 +149,6 @@ void WorkerMemCopyJM::check_buf_done()
     }
 
     for (int i = 0; i < (int)m_bufs.size(); i++) {
-
-        if (0 != m_bufs[i]->get_num_remaining_jobs()) {
-            std::cout << "WARNING! BUF[" << std::dec << m_bufs[i]->get_id()
-                << "] still has" << m_bufs[i]->get_num_remaining_jobs()
-                << " unfinished jobs!" << std::endl;
-        }
-
         m_bufs[i]->stop();
     }
 

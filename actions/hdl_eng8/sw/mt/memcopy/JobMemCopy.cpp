@@ -51,6 +51,13 @@ JobMemCopy::JobMemCopy (int in_id, int in_buf_id, HardwareManagerPtr in_hw_mgr, 
 
 JobMemCopy::~JobMemCopy()
 {
+    if (NULL != m_src) {
+        free (m_src);
+    }
+
+    if (NULL != m_dest) {
+        free (m_dest);
+    }
 }
 
 void JobMemCopy::set_src (void* in_src)
@@ -68,6 +75,18 @@ void JobMemCopy::set_size (size_t in_size)
     m_size = in_size;
 }
 
+void* JobMemCopy::aalloc (int align, int size)
+{
+    void* a;
+    int size2 = size + align;
+
+    if (posix_memalign ((void**)&a, 4096, size2) != 0) {
+        return NULL;
+    }
+
+    return a;
+}
+
 int JobMemCopy::run()
 {
     if (NULL == m_src || NULL == m_dest) {
@@ -81,12 +100,6 @@ int JobMemCopy::run()
         fail();
         return -1;
     }
-
-    //if (0 != mem_init()) {
-    //    std::cerr << "Failed to perform memory init" << std::endl;
-    //    fail();
-    //    return -1;
-    //}
 
     if (0 != mem_copy()) {
         std::cerr << "Failed to perform memory copy" << std::endl;
@@ -109,15 +122,8 @@ int JobMemCopy::mem_init()
 {
     uint8_t* ptr_src = (uint8_t*) m_src;
     uint8_t* ptr_tgt = (uint8_t*) m_dest;
-    size_t cnt = 0;
-    srand ((unsigned) time (0));
-
-    do {
-        * (ptr_src++) = rand() % 256;
-        * (ptr_tgt++) = 0;
-
-        cnt++;
-    } while (cnt < m_size);
+    memset (ptr_src, m_id ^ m_buf_id, m_size);
+    memset (ptr_tgt, 0, m_size);
 
     return 0;
 }
@@ -164,31 +170,6 @@ int JobMemCopy::mem_copy()
     m_hw_mgr->reg_write (reg_addr (ACTION_CONTROL), 0x00000001);
     m_hw_mgr->reg_write (reg_addr (ACTION_CONTROL), 0x00000000);
 
-    //// Poll status for memcpy done signal
-    //cnt = 0;
-
-    //do {
-    //    reg_data = m_hw_mgr->reg_read (reg_addr(ACTION_STATUS_L));
-
-    //    // Status[0]
-    //    if ((reg_data & 0x00000001) == 1) {
-    //        logging (boost::format("%s") % "Memcopy done!");
-    //        break;
-    //    }
-
-    //    logging (boost::format("Polling Status reg with 0X%X") % reg_data);
-    //    cnt++;
-    //} while (1);//(cnt < 100);
-
-    //cnt = 0;
-
-    //do {
-    //    reg_data = m_hw_mgr->reg_read (reg_addr(ACTION_STATUS_L));
-
-    //    logging (boost::format("Draining Status reg with 0X%X") % reg_data);
-    //    cnt++;
-    //} while (cnt < 2);
-
     return 0;
 }
 
@@ -199,19 +180,41 @@ int JobMemCopy::mem_check()
     size_t cnt = 0;
     int rc = 0;
 
-    do {
-        if (* (ptr_src) != * (ptr_tgt)) {
-            logging (boost::format ("MISCOMPARE on addr %d") % cnt);
+    logging (boost::format ("%s -- size %d") % "Checking!" % m_size);
+    if (0 == memcmp(ptr_src, ptr_tgt, m_size)) {
+        logging (boost::format ("%s") % "Check PASSED!");
+    } else {
+        do {
             logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
             logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
+            if (* (ptr_src) != * (ptr_tgt)) {
+                logging (boost::format ("MISCOMPARE on addr %d") % cnt);
+                logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
+                logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
+                rc = -1;
+            }
+
             ptr_src++;
             ptr_tgt++;
-            rc = 1;
-        }
-
-        cnt++;
-    } while (cnt < m_size);
+            cnt++;
+        } while (cnt < m_size);
+    }
 
     return rc;
+}
+
+int JobMemCopy::allocate (size_t in_size)
+{
+    // Allocate 4096-byte aligned memory
+    m_src = aalloc (64, in_size);
+    m_dest = aalloc (64, in_size);
+
+    m_size = in_size;
+
+    if (m_src == NULL || m_dest == NULL) {
+        return -1;
+    }
+
+    return 0;
 }
 

@@ -114,27 +114,6 @@ void BufMemCopy::work_with_job (JobPtr in_job)
 
     JobMemCopyPtr job = boost::dynamic_pointer_cast<JobMemCopy> (in_job);
 
-    if (job == NULL) {
-        std::cerr << "Failed to get pointer to JobMemCopy" << std::endl;
-        return;
-    }
-
-    if (m_src == NULL || m_dest == NULL) {
-        std::cerr << "NULL src or dest pointer in BufMemCopy" << std::endl;
-        return;
-    }
-
-    if (m_dest_size < m_src_size) {
-        std::cerr << "Destination buffer size should be larger than source buffer size" << std::endl;
-        std::cerr << "Destination buffer size " << std::dec << m_dest_size << std::endl;
-        std::cerr << "Source buffer size " << std::dec << m_src_size << std::endl;
-        return;
-    }
-
-    job->set_src (m_src);
-    job->set_dest (m_dest);
-    job->set_size (m_src_size);
-
     do {
         // Lock between buffers (each buffer would have a thread working on it).
         // At one time, only 1 thread is allowed to touching the AXI-lite bus
@@ -151,14 +130,22 @@ void BufMemCopy::work_with_job (JobPtr in_job)
         std::cerr << "Failed to wait interrupt for JobMemCopy" << std::endl;
     }
 
-    //std::cout << "Check memory on buf " << m_id << std::endl;
-
-    //if (0 != job->mem_check()) {
-    //    std::cerr << "ERROR! Check failed on memory copy" << std::endl;
-    //    job->fail();
-    //    return;
-    //}
-
-    //std::cout << "Finish memory checking on buf " << m_id << std::endl;
     return;
 }
+
+int BufMemCopy::check()
+{
+    int rc = 0;
+
+    for (size_t i = 0; i < m_jobs.size(); i++) {
+        JobMemCopyPtr job = boost::dynamic_pointer_cast<JobMemCopy> (m_jobs[i]);
+
+        if (job->mem_check()) {
+            std::cerr << "Memory copy result error!" << std::endl;
+            rc = -1;
+        };
+    }
+
+    return rc;
+}
+

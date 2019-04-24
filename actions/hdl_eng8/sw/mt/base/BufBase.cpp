@@ -23,7 +23,8 @@ BufBase::BufBase()
     : m_thread (NULL),
       m_id (0),
       m_timeout (600),
-      m_stopped (false)
+      m_stopped (false),
+      m_current_job_idx (0)
 {
 }
 
@@ -31,7 +32,8 @@ BufBase::BufBase (int in_id)
     : m_thread (NULL),
       m_id (in_id),
       m_timeout (600),
-      m_stopped (false)
+      m_stopped (false),
+      m_current_job_idx (0)
 {
 }
 
@@ -39,7 +41,8 @@ BufBase::BufBase (int in_id, int in_timeout)
     : m_thread (NULL),
       m_id (in_id),
       m_timeout (in_timeout),
-      m_stopped (false)
+      m_stopped (false),
+      m_current_job_idx (0)
 {
 }
 
@@ -88,11 +91,13 @@ void BufBase::work()
 {
     m_stopped = false;
 
+    m_current_job_idx = 0;
+
     while (true) {
-        if (m_jobs.size() > 0) {
-            JobPtr job = m_jobs.front();
+        if (m_current_job_idx < (int) m_jobs.size()) {
+            JobPtr job = m_jobs[m_current_job_idx];
             work_with_job (job);
-            m_jobs.pop_front();
+            m_current_job_idx++;
         }
 
         boost::this_thread::interruption_point();
@@ -151,5 +156,5 @@ void BufBase::interrupt()
 
 int BufBase::get_num_remaining_jobs()
 {
-    return (int) m_jobs.size();
+    return (int) ((int)m_jobs.size() - m_current_job_idx);
 }

@@ -65,21 +65,21 @@ int main (int argc, char* argv[])
     while (1) {
         int option_index = 0;
         static struct option long_options[] = {
-            { "card"         , required_argument , NULL , 'C' } ,
-            { "buf-num"      , required_argument , NULL , 'b' } ,
-            { "job-num"      , required_argument , NULL , 'j' } ,
-            { "memcopy-size" , required_argument , NULL , 's' } ,
-            { "timeout"      , required_argument , NULL , 't' } ,
-            { "poll"         , no_argument       , NULL , 'P' } ,
-            { "job-manager"  , no_argument       , NULL , 'm' } ,
-            { "version"      , no_argument       , NULL , 'V' } ,
-            { "verbose"      , no_argument       , NULL , 'v' } ,
-            { "help"         , no_argument       , NULL , 'h' } ,
-            { 0              , no_argument       , NULL , 0   } ,
+            { "card", required_argument, NULL, 'C' },
+            { "buf-num", required_argument, NULL, 'b' },
+            { "job-num", required_argument, NULL, 'j' },
+            { "memcopy-size", required_argument, NULL, 's' },
+            { "timeout", required_argument, NULL, 't' },
+            { "poll", no_argument, NULL, 'p' },
+            { "job-manager", no_argument, NULL, 'm' },
+            { "version", no_argument, NULL, 'V' },
+            { "verbose", no_argument, NULL, 'v' },
+            { "help", no_argument, NULL, 'h' },
+            { 0, no_argument, NULL, 0   },
         };
 
         ch = getopt_long (argc, argv,
-                          "C:b:j:s:t:PmVvh",
+                          "C:b:j:s:t:pmVvh",
                           long_options, &option_index);
 
         if (ch == -1) {
@@ -107,7 +107,7 @@ int main (int argc, char* argv[])
             timeout = strtol (optarg, (char**)NULL, 0);
             break;
 
-        case 'P':
+        case 'p':
             interrupt = false;
             break;
 
@@ -150,11 +150,11 @@ int main (int argc, char* argv[])
     print_test_params (params);
 
     int rc = 0;
-    
+
     if (job_manager) {
-        mt_jm_test_16_threads (params);
+        rc = mt_jm_test_16_threads (params);
     } else {
-        mt_test_16_threads (params);
+        rc = mt_test_16_threads (params);
     }
 
     return rc;

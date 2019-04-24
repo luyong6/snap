@@ -17,8 +17,7 @@
 #ifndef JOBDESCRIPTOR_H_h
 #define JOBDESCRIPTOR_H_h
 // Descriptor used by hardware job manager
-typedef struct
-{
+typedef struct {
     uint32_t header;
     uint32_t copy_length;
     uint64_t mem_src;

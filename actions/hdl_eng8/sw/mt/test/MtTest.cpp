@@ -28,13 +28,13 @@
 
 using namespace boost::chrono;
 
-int mt_test_16_threads(test_params in_params)
+int mt_test_16_threads (test_params in_params)
 {
     std::cout << "Running without job manager" << std::endl;
 
-    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, in_params.timeout);
+    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, 0, 1000);
     WorkerMemCopyPtr worker = boost::make_shared<WorkerMemCopy> (hw_mgr);
-    worker->set_mode(INTERRUPT == in_params.mode);
+    worker->set_mode (INTERRUPT == in_params.mode);
 
     // Initialize the hardware
     if (hw_mgr->init()) {
@@ -43,18 +43,25 @@ int mt_test_16_threads(test_params in_params)
     }
 
     uint64_t total_bytes = (uint64_t)in_params.buf_num * (uint64_t)in_params.job_num * (uint64_t)in_params.memcopy_size;
+
+    std::cout << "Setting up jobs." << std::endl;
+
     // Create buffers
     for (int i = 0; i < in_params.buf_num; i++) {
         BufMemCopyPtr buf = boost::make_shared<BufMemCopy> (i, 1000);
 
-        if (buf->allocate (in_params.memcopy_size, in_params.memcopy_size)) {
-            std::cerr << "Failed to allocate buffer for buf " << i << std::endl;
-            return -1;
-        }
-
         // Create jobs for each buffer
         for (int j = 0; j < in_params.job_num; j++) {
             JobMemCopyPtr job = boost::make_shared<JobMemCopy> (j, i, hw_mgr, in_params.debug);
+
+            if (job->allocate (in_params.memcopy_size)) {
+                std::cerr << "Failed to allocate buffer for buf "
+                          << std::dec << i << " job " << j << std::endl;
+                return -1;
+            }
+
+            job->mem_init();
+
             buf->add_job (job);
         }
 
@@ -62,27 +69,37 @@ int mt_test_16_threads(test_params in_params)
         worker->add_buf (buf);
     }
 
+    std::cout << "Finish setting up jobs." << std::endl;
+
     high_resolution_clock::time_point t_start = high_resolution_clock::now();
     // Start work
     worker->start();
     high_resolution_clock::time_point t_end = high_resolution_clock::now();
 
-    auto duration = duration_cast<microseconds>(t_end - t_start).count();
+    auto duration = duration_cast<microseconds> (t_end - t_start).count();
     std::cout << "Work finished after " << duration << " microseconds (us)" << std::endl;
     double bandwidth = ((double)total_bytes / 1024.0 / 1024.0) / (((double)duration) / 1000000.0);
     std::cout << "Total bytes copied: " << total_bytes << std::endl;
-    std::cout << "Sustained bandwidth: " << std::fixed << std::setprecision(5) << bandwidth << " MB/s" << std::endl;
+    std::cout << "Sustained bandwidth: " << std::fixed << std::setprecision (5) << bandwidth << " MB/s" << std::endl;
+
+    if (worker->check()) {
+        std::cout << "Result check FAILED!" << std::endl;
+        return 1;
+    };
+
+    std::cout << "Result check PASSED!" << std::endl;
 
     return 0;
 }
 
-int mt_jm_test_16_threads(test_params in_params)
+int mt_jm_test_16_threads (test_params in_params)
 {
     std::cout << "Running with job manager" << std::endl;
 
-    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, in_params.timeout);
+    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, 0, 1000);
     WorkerMemCopyJMPtr worker = boost::make_shared<WorkerMemCopyJM> (hw_mgr, in_params.debug);
-    worker->set_mode(INTERRUPT == in_params.mode);
+    worker->set_mode (INTERRUPT == in_params.mode);
+    worker->set_job_start_threshold (in_params.buf_num * in_params.job_num);
 
     // Initialize the hardware
     if (hw_mgr->init()) {
@@ -91,19 +108,26 @@ int mt_jm_test_16_threads(test_params in_params)
     }
 
     uint64_t total_bytes = (uint64_t)in_params.buf_num * (uint64_t)in_params.job_num * (uint64_t)in_params.memcopy_size;
+
+    std::cout << "Setting up jobs." << std::endl;
+
     // Create buffers
     for (int i = 0; i < in_params.buf_num; i++) {
         BufMemCopyJMPtr buf = boost::make_shared<BufMemCopyJM> (i, 1000);
 
-        if (buf->allocate (in_params.memcopy_size, in_params.memcopy_size)) {
-            std::cerr << "Failed to allocate buffer for buf " << i << std::endl;
-            return -1;
-        }
-
         // Create jobs for each buffer
         for (int j = 0; j < in_params.job_num; j++) {
             JobMemCopyJMPtr job = boost::make_shared<JobMemCopyJM> (j, i, hw_mgr, in_params.debug);
+
+            if (job->allocate (in_params.memcopy_size)) {
+                std::cerr << "Failed to allocate buffer for buf "
+                          << std::dec << i << " job " << j << std::endl;
+                return -1;
+            }
+
+            job->mem_init();
             job->set_worker (worker);
+
             buf->add_job (job);
         }
 
@@ -111,16 +135,25 @@ int mt_jm_test_16_threads(test_params in_params)
         worker->add_buf (buf);
     }
 
+    std::cout << "Finish setting up jobs." << std::endl;
+
     high_resolution_clock::time_point t_start = high_resolution_clock::now();
     // Start work
     worker->start();
     high_resolution_clock::time_point t_end = high_resolution_clock::now();
 
-    auto duration = duration_cast<microseconds>(t_end - t_start).count();
+    auto duration = duration_cast<microseconds> (t_end - t_start).count();
     std::cout << "Work finished after " << duration << " microseconds (us)" << std::endl;
     double bandwidth = ((double)total_bytes / 1024.0 / 1024.0) / (((double)duration) / 1000000.0);
     std::cout << "Total bytes copied: " << total_bytes << std::endl;
-    std::cout << "Sustained bandwidth: " << std::fixed << std::setprecision(5) << bandwidth << " MB/s" << std::endl;
+    std::cout << "Sustained bandwidth: " << std::fixed << std::setprecision (5) << bandwidth << " MB/s" << std::endl;
+
+    if (worker->check()) {
+        std::cout << "Result check FAILED!" << std::endl;
+        return 1;
+    };
+
+    std::cout << "Result check PASSED!" << std::endl;
 
     return 0;
 }
@@ -128,12 +161,12 @@ int mt_jm_test_16_threads(test_params in_params)
 void print_test_params (test_params in_params)
 {
     const char* mode_str[] = {"POLL", "INTERRUPT", "INVALID"};
-    printf("card_no:\t%d\n"      , in_params.card_no);
-    printf("job_num:\t%d\n"      , in_params.job_num);
-    printf("buf_num:\t%d\n"      , in_params.buf_num);
-    printf("memcopy_size:\t%d\n" , in_params.memcopy_size);
-    printf("timeout:\t%d\n"      , in_params.timeout);
-    printf("mode:\t%s\n"         , mode_str[in_params.mode]);
-    printf("debug:\t%d\n"        , in_params.debug);
+    printf ("card_no:\t%d\n", in_params.card_no);
+    printf ("job_num:\t%d\n", in_params.job_num);
+    printf ("buf_num:\t%d\n", in_params.buf_num);
+    printf ("memcopy_size:\t%d\n", in_params.memcopy_size);
+    printf ("timeout:\t%d\n", in_params.timeout);
+    printf ("mode:\t%s\n", mode_str[in_params.mode]);
+    printf ("debug:\t%d\n", in_params.debug);
 }
 

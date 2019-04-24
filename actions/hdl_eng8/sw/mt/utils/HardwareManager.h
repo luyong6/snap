@@ -31,7 +31,7 @@ class HardwareManager
 public:
     // The Constructor of hardware manager
     HardwareManager (int in_card_num);
-    HardwareManager (int in_card_num, int in_timeout);
+    HardwareManager (int in_card_num, int in_timeout_sec, int in_timeout_usec);
 
     // The Destructor of hardware manager
     ~HardwareManager();
@@ -65,7 +65,8 @@ private:
     snap_action_flag_t m_attach_flags;
 
     // Timeout value before waiting the action attached
-    int m_timeout;
+    int m_timeout_sec;
+    int m_timeout_usec;
 };
 
 typedef boost::shared_ptr<HardwareManager> HardwareManagerPtr;
