@@ -97,6 +97,9 @@ protected:
 
     // If this buffer has stopped work
     bool m_stopped;
+
+    // Index to indicate the position of current jobs
+    int m_current_job_idx;
 };
 
 typedef boost::shared_ptr<BufBase> BufPtr;

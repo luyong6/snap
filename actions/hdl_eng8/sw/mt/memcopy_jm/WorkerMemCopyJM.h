@@ -34,13 +34,19 @@ public:
     virtual void check_buf_done();
 
     // Set if we are going to use interrupt or polling
-    void set_mode(bool in_interrupt);
+    void set_mode (bool in_interrupt);
 
     // Update the job descriptor tail and count
     void append_job_desc (void* in_job_desc);
 
     // Print the job descriptor list
-    void dump_job_desc ();
+    void dump_job_desc();
+
+    // Check the result
+    int check();
+
+    // Set the job descriptor start threshold
+    void set_job_start_threshold (int in_threshold);
 
 private:
     // Use interrupt or poll to check buffer done?
@@ -49,7 +55,7 @@ private:
     // The mutex to guard job descriptors adding from buffers
     boost::mutex m_job_desc_mutex;
 
-    // The pointer to the head and tail of job descriptor list 
+    // The pointer to the head and tail of job descriptor list
     // (the first and last job descriptor in the list)
     // Update to this pointer should be guarded by mutex (m_job_desc_mutex)
     void* m_job_desc_head;

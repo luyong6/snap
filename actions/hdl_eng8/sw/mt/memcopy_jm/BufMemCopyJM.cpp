@@ -113,21 +113,21 @@ void BufMemCopyJM::work_with_job (JobPtr in_job)
         return;
     }
 
-    if (m_src == NULL || m_dest == NULL) {
-        std::cerr << "NULL src or dest pointer in BufMemCopyJM" << std::endl;
-        return;
-    }
+    //if (m_src == NULL || m_dest == NULL) {
+    //    std::cerr << "NULL src or dest pointer in BufMemCopyJM" << std::endl;
+    //    return;
+    //}
 
-    if (m_dest_size < m_src_size) {
-        std::cerr << "Destination buffer size should be larger than source buffer size" << std::endl;
-        std::cerr << "Destination buffer size " << std::dec << m_dest_size << std::endl;
-        std::cerr << "Source buffer size " << std::dec << m_src_size << std::endl;
-        return;
-    }
+    //if (m_dest_size < m_src_size) {
+    //    std::cerr << "Destination buffer size should be larger than source buffer size" << std::endl;
+    //    std::cerr << "Destination buffer size " << std::dec << m_dest_size << std::endl;
+    //    std::cerr << "Source buffer size " << std::dec << m_src_size << std::endl;
+    //    return;
+    //}
 
-    job->set_src (m_src);
-    job->set_dest (m_dest);
-    job->set_size (m_src_size);
+    //job->set_src (m_src);
+    //job->set_dest (m_dest);
+    //job->set_size (m_src_size);
 
     do {
         if (0 != job->run()) {
@@ -137,4 +137,20 @@ void BufMemCopyJM::work_with_job (JobPtr in_job)
     } while (0);
 
     return;
+}
+
+int BufMemCopyJM::check()
+{
+    int rc = 0;
+
+    for (size_t i = 0; i < m_jobs.size(); i++) {
+        JobMemCopyJMPtr job = boost::dynamic_pointer_cast<JobMemCopyJM> (m_jobs[i]);
+
+        if (job->mem_check()) {
+            std::cerr << "Memory copy result error!" << std::endl;
+            rc = -1;
+        };
+    }
+
+    return rc;
 }

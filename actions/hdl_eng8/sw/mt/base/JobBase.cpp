@@ -84,6 +84,6 @@ void JobBase::logging (boost::format & in_fmt)
 {
     if (m_debug) {
         std::cout << boost::format ("BUF[%d] - JOB[%d]: ") % m_buf_id % m_id
-            << in_fmt << std::endl;
+                  << in_fmt << std::endl;
     }
 }

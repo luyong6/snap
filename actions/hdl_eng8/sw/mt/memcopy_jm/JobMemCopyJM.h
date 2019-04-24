@@ -66,6 +66,9 @@ public:
     // Get pointer to worker
     WorkerMemCopyJMPtr get_worker();
 
+    // Allocate memory buffers
+    int allocate (size_t in_size);
+
 private:
     // The address of the source buffer
     void* m_src;

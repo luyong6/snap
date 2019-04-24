@@ -33,7 +33,10 @@ public:
     virtual void check_buf_done();
 
     // Set if we are going to use interrupt or polling
-    void set_mode(bool in_interrupt);
+    void set_mode (bool in_interrupt);
+
+    // Check the result
+    int check();
 
 private:
     // Use interrupt or poll to check buffer done?

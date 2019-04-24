@@ -99,7 +99,7 @@ void HardwareManager::cleanup()
 int HardwareManager::wait_interrupt()
 {
     if (snap_action_wait_interrupt (m_capi_action, m_timeout)) {
-        //std::cout << "Retry waiting interrupt ... " << std::endl;
+        std::cout << "Retry waiting interrupt ... " << std::endl;
         return -1;
     }
 
