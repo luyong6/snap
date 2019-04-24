@@ -141,6 +141,7 @@ static int do_action (struct snap_card* dnc,
                     )
 {
     int rc;
+    int cntprint;
     uint64_t t_start;   /* time in usec */
     uint64_t td = 0;    /* Diff time in usec */
 
@@ -167,10 +168,23 @@ static int do_action (struct snap_card* dnc,
     action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000101);
     action_write(dnc, ACTION_GLOBAL_CONTROL, 0X00000100);
     //done
-    while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 1){;};
-    VERBOSE0(" test!\n ");
-    sleep(10);
     while ((action_read(dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0){;};
+    cntprint = action_read(dnc, ACTION_KERNEL0_CNT);
+    printf("KERNEL0 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL1_CNT);
+    printf("KERNEL1 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL2_CNT);
+    printf("KERNEL2 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL3_CNT);
+    printf("KERNEL3 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL4_CNT);
+    printf("KERNEL4 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL5_CNT);
+    printf("KERNEL5 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL6_CNT);
+    printf("KERNEL6 count = %d \n",cntprint);
+    cntprint = action_read(dnc, ACTION_KERNEL7_CNT);
+    printf("KERNEL7 count = %d \n",cntprint);
     VERBOSE0(" done!\n ");
         
     td = get_usec() - t_start;
@@ -230,20 +244,128 @@ int main (int argc, char* argv[])
 	unsigned long ioctl_data;
 	int patt_size = 4096*4096;
     int delay = 100;
+    int length = 16384;
 	int* init = alloc_mem(64, 64);
 	void* src  = alloc_mem(64, patt_size);
 	void* dest = alloc_mem(64, patt_size);
+	int* init1 = alloc_mem(64, 64);
+	void* src1  = alloc_mem(64, patt_size);
+	void* dest1 = alloc_mem(64, patt_size);
+	int* init2 = alloc_mem(64, 64);
+	void* src2  = alloc_mem(64, patt_size);
+	void* dest2 = alloc_mem(64, patt_size);
+	int* init3 = alloc_mem(64, 64);
+	void* src3  = alloc_mem(64, patt_size);
+	void* dest3 = alloc_mem(64, patt_size);
+	int* init4 = alloc_mem(64, 64);
+	void* src4  = alloc_mem(64, patt_size);
+	void* dest4 = alloc_mem(64, patt_size);
+	int* init5 = alloc_mem(64, 64);
+	void* src5  = alloc_mem(64, patt_size);
+	void* dest5 = alloc_mem(64, patt_size);
+	int* init6 = alloc_mem(64, 64);
+	void* src6  = alloc_mem(64, patt_size);
+	void* dest6 = alloc_mem(64, patt_size);
+	int* init7 = alloc_mem(64, 64);
+	void* src7  = alloc_mem(64, patt_size);
+	void* dest7 = alloc_mem(64, patt_size);
+	int* init8 = alloc_mem(64, 64);
+	void* src8  = alloc_mem(64, patt_size);
+	void* dest8 = alloc_mem(64, patt_size);
+	int* init9 = alloc_mem(64, 64);
+	void* src9  = alloc_mem(64, patt_size);
+	void* dest9 = alloc_mem(64, patt_size);
 	uint64_t td;
 
-    *(init+1) = (uint32_t)delay;
+    *(init+1) = (uint32_t)length;
     *(init+2) = (uint32_t)((uint64_t)src & 0xffffffff);
     *(init+3) = (uint32_t)((uint64_t)src >> 32);
     *(init+4) = (uint32_t)((uint64_t)dest & 0xffffffff);
     *(init+5) = (uint32_t)((uint64_t)dest >> 32);
-    *(init+6) = 0;
+    *(init+6) = (uint32_t)((uint64_t)init1 & 0xffffffff);
+    *(init+7) = (uint32_t)((uint64_t)init1 >> 32);
     *(init+9) = (uint32_t)delay;
-    printf("src = %p\n",src);
-    printf("dest = %p\n",dest);
+
+    *(init1+1) = (uint32_t)length;
+    *(init1+2) = (uint32_t)((uint64_t)src1 & 0xffffffff);
+    *(init1+3) = (uint32_t)((uint64_t)src1 >> 32);
+    *(init1+4) = (uint32_t)((uint64_t)dest1 & 0xffffffff);
+    *(init1+5) = (uint32_t)((uint64_t)dest1 >> 32);
+    *(init1+6) = (uint32_t)((uint64_t)init2 & 0xffffffff);
+    *(init1+7) = (uint32_t)((uint64_t)init2 >> 32);
+    *(init1+9) = (uint32_t)delay;
+
+    *(init2+1) = (uint32_t)length;
+    *(init2+2) = (uint32_t)((uint64_t)src2 & 0xffffffff);
+    *(init2+3) = (uint32_t)((uint64_t)src2 >> 32);
+    *(init2+4) = (uint32_t)((uint64_t)dest2 & 0xffffffff);
+    *(init2+5) = (uint32_t)((uint64_t)dest2 >> 32);
+    *(init2+6) = (uint32_t)((uint64_t)init3 & 0xffffffff);
+    *(init2+7) = (uint32_t)((uint64_t)init3 >> 32);
+    *(init2+9) = (uint32_t)delay;
+
+    *(init3+1) = (uint32_t)length;
+    *(init3+2) = (uint32_t)((uint64_t)src3 & 0xffffffff);
+    *(init3+3) = (uint32_t)((uint64_t)src3 >> 32);
+    *(init3+4) = (uint32_t)((uint64_t)dest3 & 0xffffffff);
+    *(init3+5) = (uint32_t)((uint64_t)dest3 >> 32);
+    *(init3+6) = (uint32_t)((uint64_t)init4 & 0xffffffff);
+    *(init3+7) = (uint32_t)((uint64_t)init4 >> 32);
+    *(init3+9) = (uint32_t)delay;
+
+    *(init4+1) = (uint32_t)length;
+    *(init4+2) = (uint32_t)((uint64_t)src4 & 0xffffffff);
+    *(init4+3) = (uint32_t)((uint64_t)src4 >> 32);
+    *(init4+4) = (uint32_t)((uint64_t)dest4 & 0xffffffff);
+    *(init4+5) = (uint32_t)((uint64_t)dest4 >> 32);
+    *(init4+6) = (uint32_t)((uint64_t)init5 & 0xffffffff);
+    *(init4+7) = (uint32_t)((uint64_t)init5 >> 32);
+    *(init4+9) = (uint32_t)delay;
+
+    *(init5+1) = (uint32_t)length;
+    *(init5+2) = (uint32_t)((uint64_t)src5 & 0xffffffff);
+    *(init5+3) = (uint32_t)((uint64_t)src5 >> 32);
+    *(init5+4) = (uint32_t)((uint64_t)dest5 & 0xffffffff);
+    *(init5+5) = (uint32_t)((uint64_t)dest5 >> 32);
+    *(init5+6) = (uint32_t)((uint64_t)init6 & 0xffffffff);
+    *(init5+7) = (uint32_t)((uint64_t)init6 >> 32);
+    *(init5+9) = (uint32_t)delay;
+
+    *(init6+1) = (uint32_t)length;
+    *(init6+2) = (uint32_t)((uint64_t)src6 & 0xffffffff);
+    *(init6+3) = (uint32_t)((uint64_t)src6 >> 32);
+    *(init6+4) = (uint32_t)((uint64_t)dest6 & 0xffffffff);
+    *(init6+5) = (uint32_t)((uint64_t)dest6 >> 32);
+    *(init6+6) = (uint32_t)((uint64_t)init7 & 0xffffffff);
+    *(init6+7) = (uint32_t)((uint64_t)init7 >> 32);
+    *(init6+9) = (uint32_t)delay;
+
+    *(init7+1) = (uint32_t)length;
+    *(init7+2) = (uint32_t)((uint64_t)src7 & 0xffffffff);
+    *(init7+3) = (uint32_t)((uint64_t)src7 >> 32);
+    *(init7+4) = (uint32_t)((uint64_t)dest7 & 0xffffffff);
+    *(init7+5) = (uint32_t)((uint64_t)dest7 >> 32);
+    *(init7+6) = (uint32_t)((uint64_t)init8 & 0xffffffff);
+    *(init7+7) = (uint32_t)((uint64_t)init8 >> 32);
+    *(init7+9) = (uint32_t)delay;
+
+    *(init8+1) = (uint32_t)length;
+    *(init8+2) = (uint32_t)((uint64_t)src8 & 0xffffffff);
+    *(init8+3) = (uint32_t)((uint64_t)src8 >> 32);
+    *(init8+4) = (uint32_t)((uint64_t)dest8 & 0xffffffff);
+    *(init8+5) = (uint32_t)((uint64_t)dest8 >> 32);
+    *(init8+6) = (uint32_t)((uint64_t)init9 & 0xffffffff);
+    *(init8+7) = (uint32_t)((uint64_t)init9 >> 32);
+    *(init8+9) = (uint32_t)delay;
+
+    *(init9+1) = (uint32_t)length;
+    *(init9+2) = (uint32_t)((uint64_t)src9 & 0xffffffff);
+    *(init9+3) = (uint32_t)((uint64_t)src9 >> 32);
+    *(init9+4) = (uint32_t)((uint64_t)dest9 & 0xffffffff);
+    *(init9+5) = (uint32_t)((uint64_t)dest9 >> 32);
+    *(init9+6) = 0;
+    *(init9+7) = 0;
+    *(init9+9) = (uint32_t)delay;
 
 	while (1) {
 		int option_index = 0;
