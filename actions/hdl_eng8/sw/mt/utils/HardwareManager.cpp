@@ -22,16 +22,18 @@ HardwareManager::HardwareManager (int in_card_num)
       m_capi_card (NULL),
       m_capi_action (NULL),
       m_attach_flags ((snap_action_flag_t)0),
-      m_timeout (1000)
+      m_timeout_sec (0),
+      m_timeout_usec (1000)
 {
 }
 
-HardwareManager::HardwareManager (int in_card_num, int in_timeout)
+HardwareManager::HardwareManager (int in_card_num, int in_timeout_sec, int in_timeout_usec)
     : m_card_num (in_card_num),
       m_capi_card (NULL),
       m_capi_action (NULL),
       m_attach_flags ((snap_action_flag_t)0),
-      m_timeout (in_timeout)
+      m_timeout_sec (in_timeout_sec),
+      m_timeout_usec (in_timeout_usec)
 {
 }
 
@@ -53,7 +55,7 @@ int HardwareManager::init()
     }
 
     m_capi_action = snap_attach_action (m_capi_card, ACTION_TYPE_HDL_ENG8,
-                                        m_attach_flags, 5 * m_timeout);
+                                        m_attach_flags, 5 * ((m_timeout_sec == 0) ? 1 : m_timeout_sec));
 
     if (NULL == m_capi_action) {
         std::cerr << "Failed to attach action!" << std::endl;
@@ -98,8 +100,8 @@ void HardwareManager::cleanup()
 
 int HardwareManager::wait_interrupt()
 {
-    if (snap_action_wait_interrupt (m_capi_action, m_timeout)) {
-        std::cout << "Retry waiting interrupt ... " << std::endl;
+    if (snap_action_wait_interrupt (m_capi_action, m_timeout_sec, m_timeout_usec)) {
+        //std::cout << "Retry waiting interrupt ... " << std::endl;
         return -1;
     }
 

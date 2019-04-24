@@ -32,7 +32,7 @@ int mt_test_16_threads (test_params in_params)
 {
     std::cout << "Running without job manager" << std::endl;
 
-    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, in_params.timeout);
+    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, 0, 1000);
     WorkerMemCopyPtr worker = boost::make_shared<WorkerMemCopy> (hw_mgr);
     worker->set_mode (INTERRUPT == in_params.mode);
 
@@ -96,7 +96,7 @@ int mt_jm_test_16_threads (test_params in_params)
 {
     std::cout << "Running with job manager" << std::endl;
 
-    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, in_params.timeout);
+    HardwareManagerPtr hw_mgr =  boost::make_shared<HardwareManager> (in_params.card_no, 0, 1000);
     WorkerMemCopyJMPtr worker = boost::make_shared<WorkerMemCopyJM> (hw_mgr, in_params.debug);
     worker->set_mode (INTERRUPT == in_params.mode);
     worker->set_job_start_threshold (in_params.buf_num * in_params.job_num);
