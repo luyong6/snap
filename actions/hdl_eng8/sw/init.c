@@ -259,7 +259,6 @@ int main (int argc, char* argv[])
     unsigned long ioctl_data;
     int patt_size = 4096 * 4096;
     int delay = 100;
-<<<<<<< HEAD
     int length = 16384;
 	int* init = alloc_mem(64, 64);
 	void* src  = alloc_mem(64, patt_size);
@@ -487,127 +486,6 @@ int main (int argc, char* argv[])
     	rc = do_action (dn, init, dest, &td);
 
 	snap_detach_action (act);
-=======
-    int* init = alloc_mem (64, 64);
-    void* src  = alloc_mem (64, patt_size);
-    void* dest = alloc_mem (64, patt_size);
-    uint64_t td;
-
-    * (init + 1) = (uint32_t)delay;
-    * (init + 2) = (uint32_t) ((uint64_t)src & 0xffffffff);
-    * (init + 3) = (uint32_t) ((uint64_t)src >> 32);
-    * (init + 4) = (uint32_t) ((uint64_t)dest & 0xffffffff);
-    * (init + 5) = (uint32_t) ((uint64_t)dest >> 32);
-    * (init + 6) = 0;
-    * (init + 9) = (uint32_t)delay;
-    printf ("src = %p\n", src);
-    printf ("dest = %p\n", dest);
-
-    while (1) {
-        int option_index = 0;
-        static struct option long_options[] = {
-            { "card",    required_argument, NULL, 'C' },
-            { "verbose",  no_argument,     NULL, 'v' },
-            { "help",    no_argument,      NULL, 'h' },
-            { "version",  no_argument,     NULL, 'V' },
-            { "quiet",  no_argument,       NULL, 'q' },
-            { "timeout",  required_argument, NULL, 't' },
-            { "irq",      no_argument,     NULL, 'I' },
-            { 0,          no_argument,     NULL, 0   },
-        };
-        cmd = getopt_long (argc, argv, "C:t:IqvVh",
-                           long_options, &option_index);
-
-        if (cmd == -1) { /* all params processed ? */
-            break;
-        }
-
-        switch (cmd) {
-        case 'v':   /* verbose */
-            verbose_level++;
-            break;
-
-        case 'V':   /* version */
-            VERBOSE0 ("%s\n", version);
-            exit (EXIT_SUCCESS);;
-
-        case 'h':   /* help */
-            usage (argv[0]);
-            exit (EXIT_SUCCESS);;
-
-        case 'C':   /* card */
-            card_no = strtol (optarg, (char**)NULL, 0);
-            break;
-
-        case 't':
-            timeout = strtol (optarg, (char**)NULL, 0); /* in sec */
-            break;
-
-        case 'I':     /* irq */
-            attach_flags = SNAP_ACTION_DONE_IRQ | SNAP_ATTACH_IRQ;
-            break;
-
-        default:
-            usage (argv[0]);
-            exit (EXIT_FAILURE);
-        }
-    }
-
-    VERBOSE2 ("Open Card: %d\n", card_no);
-    sprintf (device, "/dev/cxl/afu%d.0s", card_no);
-    dn = snap_card_alloc_dev (device, SNAP_VENDOR_ID_IBM, SNAP_DEVICE_ID_SNAP);
-
-    if (NULL == dn) {
-        errno = ENODEV;
-        VERBOSE0 ("ERROR: snap_card_alloc_dev(%s)\n", device);
-        return -1;
-    }
-
-    /* Read Card Capabilities */
-    snap_card_ioctl (dn, GET_CARD_TYPE, (unsigned long)&ioctl_data);
-    VERBOSE1 ("SNAP on ");
-
-    //  switch (ioctl_data) {
-    //  case  0:
-    //      VERBOSE1 ("ADKU3");
-    //      break;
-    //
-    //  case  1:
-    //      VERBOSE1 ("N250S");
-    //      break;
-    //
-    //  case 16:
-    //      VERBOSE1 ("N250SP");
-    //      break;
-    //
-    //  default:
-    //      VERBOSE1 ("Unknown");
-    //      break;
-    //  }
-
-    //snap_card_ioctl (dn, GET_SDRAM_SIZE, (unsigned long)&ioctl_data);
-    //VERBOSE1 (" Card, %d MB of Card Ram avilable.\n", (int)ioctl_data);
-
-    snap_mmio_read64 (dn, SNAP_S_CIR, &cir);
-    VERBOSE0 ("Start of Card Handle: %p Context: %d\n", dn,
-              (int) (cir & 0x1ff));
-
-    VERBOSE0 ("Start to get action.\n");
-
-    act = get_action (dn, attach_flags, 5 * timeout);
-
-
-    if (NULL == act) {
-        goto __exit1;
-    }
-
-    VERBOSE0 ("Finish get action.\n");
-
-    VERBOSE0 ("Start memory copy.\n");
-    rc = do_action (dn, init, dest, &td);
-
-    snap_detach_action (act);
->>>>>>> 83f945fcbde61313dd618f7f4c6f21539da60d15
 
 __exit1:
     // Unmap AFU MMIO registers, if previously mapped
