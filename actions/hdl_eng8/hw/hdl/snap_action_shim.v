@@ -319,6 +319,40 @@ wire               kernel_s_axi_snap_rready [KERNEL_NUM:0];
 wire               kernel_s_axi_snap_rvalid [KERNEL_NUM:0];
 //Instantiate kernels
 
+
+ila_action_shim ila1(
+    .clk (clk),
+    .probe0 ({
+                      kernel_o_complete        ,
+                      kernel_i_start           ,
+                      new_job                  ,
+                      job_done                 ,
+                      job_start                ,
+                      init_addr                ,
+                      manager_start            ,
+                      run_mode                 ,
+                      m_axi_snap_awaddr        ,
+                      m_axi_snap_awlen         ,
+                      m_axi_snap_awvalid       ,
+                      m_axi_snap_awready       ,
+                      m_axi_snap_wdata[63:0]   ,
+                      m_axi_snap_wlast         ,
+                      m_axi_snap_wvalid        ,
+                      m_axi_snap_wready        ,
+                      m_axi_snap_bready        ,
+                      m_axi_snap_bresp         ,
+                      m_axi_snap_bvalid        ,
+                      m_axi_snap_araddr        ,
+                      m_axi_snap_arlen         ,
+                      m_axi_snap_arvalid       ,
+                      m_axi_snap_arready       ,
+                      m_axi_snap_rready        ,
+                      m_axi_snap_rdata[63:0]   ,
+                      m_axi_snap_rresp         ,
+                      m_axi_snap_rlast         ,
+                      m_axi_snap_rvalid       } )
+);
+
 genvar i;
 generate
 for (i = 0; i < KERNEL_NUM; i = i + 1) begin:k_inst

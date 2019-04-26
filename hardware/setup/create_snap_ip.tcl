@@ -543,5 +543,32 @@ if { $create_ddr4_ad9v3 == "TRUE" } {
   puts "	                generating ddr4sdram example design"
   open_example_project -in_process -force -dir $ip_dir     [get_ips ddr4sdram] >> $log_file
 }
+
+
+
+#ILA for debug
+# create ILA
+  puts "                        generating IP ila_psl_if"
+  create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_psl_if -dir $ip_dir  >> $log_file
+  set_property -dict [list CONFIG.C_PROBE0_WIDTH {815} CONFIG.C_DATA_DEPTH {1024} CONFIG.C_TRIGOUT_EN {false} CONFIG.C_TRIGIN_EN {false}] [get_ips ila_psl_if]
+  set_property generate_synth_checkpoint false [get_files $ip_dir/ila_psl_if/ila_psl_if.xci]
+  generate_target {instantiation_template}     [get_files $ip_dir/ila_psl_if/ila_psl_if.xci] >> $log_file
+  generate_target all                          [get_files $ip_dir/ila_psl_if/ila_psl_if.xci] >> $log_file
+  export_ip_user_files -of_objects             [get_files $ip_dir/ila_psl_if/ila_psl_if.xci] -no_script -force >> $log_file
+  export_simulation    -of_objects             [get_files $ip_dir/ila_psl_if/ila_psl_if.xci] -directory $ip_dir/ip_user_files/sim_scripts -force >> $log_file
+
+
+  puts "                        generating IP ila_action_shim"
+  create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_action_shim -dir $ip_dir  >> $log_file
+  set_property -dict [list CONFIG.C_PROBE0_WIDTH {373} CONFIG.C_DATA_DEPTH {4096} CONFIG.C_TRIGOUT_EN {false} CONFIG.C_TRIGIN_EN {false}] [get_ips ila_action_shim]
+  set_property generate_synth_checkpoint false [get_files $ip_dir/ila_action_shim/ila_action_shim.xci]
+  generate_target {instantiation_template}     [get_files $ip_dir/ila_action_shim/ila_action_shim.xci] >> $log_file
+  generate_target all                          [get_files $ip_dir/ila_action_shim/ila_action_shim.xci] >> $log_file
+  export_ip_user_files -of_objects             [get_files $ip_dir/ila_action_shim/ila_action_shim.xci] -no_script -force >> $log_file
+  export_simulation    -of_objects             [get_files $ip_dir/ila_action_shim/ila_action_shim.xci] -directory $ip_dir/ip_user_files/sim_scripts -force >> $log_file
+
+
+#
+#
 puts "\[CREATE SNAP IPs.....\] done  [clock format [clock seconds] -format {%T %a %b %d %Y}]"
 close_project >> $log_file

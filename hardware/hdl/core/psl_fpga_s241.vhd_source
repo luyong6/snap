@@ -81,7 +81,12 @@ END psl_fpga;
 
 
 ARCHITECTURE psl_fpga OF psl_fpga IS
-
+Component ila_psl_if
+  PORT(
+    clk: IN STD_LOGIC;
+    probe0: IN STD_LOGIC_VECTOR(814 downto 0)
+    );
+END Component ila_psl_if;
 Component psl_accel
   PORT(
     -- Command interface
@@ -453,6 +458,115 @@ SIGNAL pci_user_reset      : std_logic;
 SIGNAL pci_clock_125MHz    : std_logic;
 
 BEGIN
+  ila0: ila_psl_if
+    PORT MAP (
+    clk => ha0_pclock ,
+   probe0( 0	to 0    ) => a0h_cvalid         ,
+   probe0( 1	to 8    ) => a0h_ctag           ,
+   probe0( 9	to 21   ) => a0h_com            ,
+   probe0( 22	to 24   ) => a0h_cabt           ,
+   probe0( 25	to 88   ) => a0h_cea            ,
+   probe0( 89	to 104  ) => a0h_cch            ,
+   probe0( 105	to 105  ) => ha0_brvalid        ,
+   probe0( 106	to 113  ) => ha0_brtag          ,
+   probe0( 114	to 119  ) => ha0_brad           ,
+   probe0( 120	to 183  ) => a0h_brdata (0 to 63),
+   probe0( 184	to 184  ) => ha0_bwvalid        ,
+   probe0( 185	to 192  ) => ha0_bwtag          ,
+   probe0( 193	to 256  ) => ha0_bwdata (0 to 63),
+   probe0( 257	to 257  ) => ha0_rvalid         ,
+   probe0( 258	to 265  ) => ha0_rtag           ,
+   probe0( 266	to 274  ) => ha0_rditag         ,
+   probe0( 275	to 282  ) => ha0_response       ,
+   probe0( 283	to 290  ) => ha0_response_ext   ,
+   probe0( 291	to 299  ) => ha0_rcredits       ,
+   probe0( 300	to 300  ) => ha0_mmval          ,
+   probe0( 301	to 301  ) => ha0_mmcfg          ,
+   probe0( 302	to 302  ) => ha0_mmrnw          ,
+   probe0( 303	to 303  ) => ha0_mmdw           ,
+   probe0( 304	to 327  ) => ha0_mmad           ,
+   probe0( 328	to 391  ) => ha0_mmdata         ,
+   probe0( 392	to 392  ) => a0h_mmack          ,
+   probe0( 393	to 456  ) => a0h_mmdata         ,
+   probe0( 457	to 457  ) => ha0_jval           ,
+   probe0( 458	to 465  ) => ha0_jcom           ,
+   probe0( 466	to 529  ) => ha0_jea            ,
+   probe0( 530	to 530  ) => a0h_jrunning       ,
+   probe0( 531	to 531  ) => a0h_jdone          ,
+   probe0( 532	to 532  ) => a0h_jcack          ,
+   probe0( 533	to 596  ) => a0h_jerror         ,
+   probe0( 597	to 597  ) => a0h_tbreq          ,
+   probe0( 598	to 598  ) => a0h_paren          ,
+   probe0( 599	to 599  ) => d0h_dvalid         ,
+   probe0( 600	to 609  ) => d0h_req_utag       ,
+   probe0( 610	to 618  ) => d0h_req_itag       ,
+   probe0( 619	to 621  ) => d0h_dtype          ,
+   probe0( 622	to 631  ) => d0h_dsize          ,
+   probe0( 632	to 695  ) => d0h_ddata (0 to 63),
+   probe0( 696	to 696  ) => hd0_sent_utag_valid,
+   probe0( 697	to 706  ) => hd0_sent_utag      ,
+   probe0( 707	to 709  ) => hd0_sent_utag_sts  ,
+   probe0( 710	to 710  ) => hd0_cpl_valid      ,
+   probe0( 711	to 720  ) => hd0_cpl_utag       ,
+   probe0( 721	to 723  ) => hd0_cpl_type       ,
+   probe0( 724	to 730  ) => hd0_cpl_laddr      ,
+   probe0( 731	to 740  ) => hd0_cpl_byte_count ,
+   probe0( 741	to 750  ) => hd0_cpl_size       ,
+   probe0( 751	to 814  ) => hd0_cpl_data (0 to 63) 
+    );
+
+--    probe0(      to      ) => a0h_cvalid         , -- : in  std_logic                  ; -- Command valid
+--    probe0(      to      ) => a0h_ctag           , -- : in  std_logic_vector(0 to 7)   ; -- Command tag
+--    probe0(      to      ) => a0h_com            , -- : in  std_logic_vector(0 to 12)  ; -- Command code
+--    probe0(      to      ) => a0h_cabt           , -- : in  std_logic_vector(0 to 2)   ; -- Command ABT
+--    probe0(      to      ) => a0h_cea            , -- : in  std_logic_vector(0 to 63)  ; -- Command address
+--    probe0(      to      ) => a0h_cch            , -- : in  std_logic_vector(0 to 15)  ; -- Command context handle
+--    probe0(      to      ) => ha0_brvalid        , -- : out std_logic                  ; -- Buffer Read valid
+--    probe0(      to      ) => ha0_brtag          , -- : out std_logic_vector(0 to 7)   ; -- Buffer Read tag
+--    probe0(      to      ) => ha0_brad           , -- : out std_logic_vector(0 to 5)   ; -- Buffer Read address
+--    probe0(      to      ) => a0h_brdata (0 to 63)        , -- : in  std_logic_vector(0 to 1023); -- Buffer Read data
+--    probe0(      to      ) => ha0_bwvalid        , -- : out std_logic                  ; -- Buffer Write valid
+--    probe0(      to      ) => ha0_bwtag          , -- : out std_logic_vector(0 to 7)   ; -- Buffer Write tag
+--    probe0(      to      ) => ha0_bwdata (0 to 63)        , -- : out std_logic_vector(0 to 1023); -- Buffer Write data
+--    probe0(      to      ) => ha0_rvalid         , -- : out std_logic                  ; -- Response valid
+--    probe0(      to      ) => ha0_rtag           , -- : out std_logic_vector(0 to 7)   ; -- Response tag
+--    probe0(      to      ) => ha0_rditag         , -- : out std_logic_vector(0 to 8);    -- **New DMA Translation Tag for xlat_* requests
+--    probe0(      to      ) => ha0_response       , -- : out std_logic_vector(0 to 7)   ; -- Response
+--    probe0(      to      ) => ha0_response_ext   , -- : out std_logic_vector(0 to 7)   ; -- **New Response Ext
+--    probe0(      to      ) => ha0_rcredits       , -- : out std_logic_vector(0 to 8)   ; -- Response credits
+--    probe0(      to      ) => ha0_mmval          , -- : out std_logic                  ; -- A valid MMIO is present
+--    probe0(      to      ) => ha0_mmcfg          , -- : out std_logic                  ; -- afu descriptor space access
+--    probe0(      to      ) => ha0_mmrnw          , -- : out std_logic                  ; -- 1 = read, 0 = write
+--    probe0(      to      ) => ha0_mmdw           , -- : out std_logic                  ; -- 1 = doubleword, 0 = word
+--    probe0(      to      ) => ha0_mmad           , -- : out std_logic_vector(0 to 23)  ; -- mmio address
+--    probe0(      to      ) => ha0_mmdata         , -- : out std_logic_vector(0 to 63)  ; -- Write data
+--    probe0(      to      ) => a0h_mmack          , -- : in  std_logic                  ; -- Write is complete or Read is valid
+--    probe0(      to      ) => a0h_mmdata         , -- : in  std_logic_vector(0 to 63)  ; -- Read data
+--    probe0(      to      ) => ha0_jval           , -- : out std_logic                  ; -- Job valid
+--    probe0(      to      ) => ha0_jcom           , -- : out std_logic_vector(0 to 7)   ; -- Job command
+--    probe0(      to      ) => ha0_jea            , -- : out std_logic_vector(0 to 63)  ; -- Job address
+--    probe0(      to      ) => a0h_jrunning       , -- : in  std_logic                  ; -- Job running
+--    probe0(      to      ) => a0h_jdone          , -- : in  std_logic                  ; -- Job done
+--    probe0(      to      ) => a0h_jcack          , -- : in  std_logic                  ; -- completion of llcmd
+--    probe0(      to      ) => a0h_jerror         , -- : in  std_logic_vector(0 to 63)  ; -- Job error
+--    probe0(      to      ) => a0h_tbreq          , -- : in  std_logic                  ; -- Timebase command request
+--    probe0(      to      ) => a0h_paren          , -- : in  std_logic                  ; -- parity enable
+--    probe0(      to      ) => d0h_dvalid         , -- : in  std_logic                  ; -- New PSL/AFU interface
+--    probe0(      to      ) => d0h_req_utag       , -- : in  std_logic_vector(0 to 9)   ; -- New PSL/AFU interface
+--    probe0(      to      ) => d0h_req_itag       , -- : in  std_logic_vector(0 to 8)   ; -- New PSL/AFU interface
+--    probe0(      to      ) => d0h_dtype          , -- : in  std_logic_vector(0 to 2)   ; -- New PSL/AFU interface
+--    probe0(      to      ) => d0h_dsize          , -- : in  std_logic_vector(0 to 9)   ; -- New PSL/AFU interface
+--    probe0(      to      ) => d0h_ddata (0 to 63)          , -- : in  std_logic_vector(0 to 1023); -- New PSL/AFU interface
+--    probe0(      to      ) => hd0_sent_utag_valid, -- : out std_logic                  ;
+--    probe0(      to      ) => hd0_sent_utag      , -- : out std_logic_vector(0 to 9)   ;
+--    probe0(      to      ) => hd0_sent_utag_sts  , -- : out std_logic_vector(0 to 2)   ;
+--    probe0(      to      ) => hd0_cpl_valid      , -- : out std_logic                  ;
+--    probe0(      to      ) => hd0_cpl_utag       , -- : out std_logic_vector(0 to 9)   ;
+--    probe0(      to      ) => hd0_cpl_type       , -- : out std_logic_vector(0 to 2)   ;
+--    probe0(      to      ) => hd0_cpl_laddr      , -- : out std_logic_vector(0 to 6)   ;
+--    probe0(      to      ) => hd0_cpl_byte_count , -- : out std_logic_vector(0 to 9)   ;
+--    probe0(      to      ) => hd0_cpl_size       , -- : out std_logic_vector(0 to 9)   ;
+--    probe0(      to      ) => hd0_cpl_data (0 to 63)        -- : out std_logic_vector(0 to 1023);
 
   a0: psl_accel
     PORT MAP (
