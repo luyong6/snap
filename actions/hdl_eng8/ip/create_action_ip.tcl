@@ -40,6 +40,11 @@ set_property -dict [list CONFIG.NUM_MI {9} CONFIG.PROTOCOL {AXI4LITE} CONFIG.M00
 set_property generate_synth_checkpoint false [get_files $src_dir/host_axi_lite_crossbar_0/host_axi_lite_crossbar_0.xci] >> $log_file
 generate_target all [get_files $src_dir/host_axi_lite_crossbar_0/host_axi_lite_crossbar_0.xci] >> $log_file
 
+puts "                        Generating job_manager_fifo ......"
+create_ip -name fifo_generator -vendor xilinx.com -library ip -version 13.2 -module_name job_manager_fifo >> $log_file
+set_property -dict [list  CONFIG.Fifo_Implementation {Common_Clock_Block_RAM} CONFIG.Input_Data_Width {512} CONFIG.Input_Depth {16} CONFIG.Output_Data_Width {512} CONFIG.Output_Depth {16} CONFIG.Use_Embedded_Registers {false} CONFIG.Reset_Type {Asynchronous_Reset} CONFIG.Full_Flags_Reset_Value {1} CONFIG.Valid_Flag {true} CONFIG.Data_Count {true} CONFIG.Data_Count_Width {4} CONFIG.Write_Data_Count_Width {4} CONFIG.Read_Data_Count_Width {4} CONFIG.Full_Threshold_Assert_Value {14} CONFIG.Full_Threshold_Negate_Value {13} CONFIG.Enable_Safety_Circuit {true}] [get_ips job_manager_fifo]
+set_property generate_synth_checkpoint false [get_files $src_dir/job_manager_fifo/job_manager_fifo.xci] >> $log_file
+generate_target all [get_files $src_dir/job_manager_fifo/job_manager_fifo.xci] >> $log_file
 
 puts "                        Generating axi_rid_fifo ......"
 create_ip -name fifo_generator -vendor xilinx.com -library ip -version 13.2 -module_name axi_rid_fifo >> $log_file

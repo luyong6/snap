@@ -166,7 +166,7 @@ static int do_action (struct snap_card* dnc,
     t_start = get_usec();
 
 
-    VERBOSE0 (" test!\n ");
+    VERBOSE0 (" test!\n");
     // start copy
     action_write (dnc, ACTION_GLOBAL_CONTROL, 0X00000101);
     action_write (dnc, ACTION_GLOBAL_CONTROL, 0X00000100);
@@ -189,17 +189,7 @@ static int do_action (struct snap_card* dnc,
     printf("KERNEL6 count = %d \n",cntprint);
     cntprint = action_read(dnc, ACTION_KERNEL7_CNT);
     printf("KERNEL7 count = %d \n",cntprint);
-    VERBOSE0(" done!\n ");
-        
-    while ((action_read (dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 1) {;};
-
-    VERBOSE0 (" test!\n ");
-
-    sleep (10);
-
-    while ((action_read (dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0) {;};
-
-    VERBOSE0 (" done!\n ");
+    VERBOSE0 (" done!\n");
 
     td = get_usec() - t_start;
 
