@@ -149,7 +149,7 @@ int JobMemCopyJM::mem_copy()
     job_desc_ptr->copy_length = (uint32_t) m_size;
     job_desc_ptr->mem_src = (uint64_t) m_src;
     job_desc_ptr->mem_dest = (uint64_t) m_dest;
-    job_desc_ptr->user_config = 100;
+    job_desc_ptr->user_config_0 = 400;
 
     m_worker->append_job_desc (job_desc_ptr);
 
@@ -176,13 +176,14 @@ int JobMemCopyJM::mem_check()
                 logging (boost::format ("MISCOMPARE on addr %d") % cnt);
                 logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
                 logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
-                rc = -1;
             }
 
             ptr_src++;
             ptr_tgt++;
             cnt++;
         } while (cnt < m_size);
+
+        rc = -1;
     }
 
     return rc;

@@ -181,12 +181,14 @@ int JobMemCopy::mem_check()
     int rc = 0;
 
     logging (boost::format ("%s -- size %d") % "Checking!" % m_size);
-    if (0 == memcmp(ptr_src, ptr_tgt, m_size)) {
+
+    if (0 == memcmp (ptr_src, ptr_tgt, m_size)) {
         logging (boost::format ("%s") % "Check PASSED!");
     } else {
         do {
             logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));
             logging (boost::format ("TARGET DATA %#x") % (uint32_t) (*ptr_tgt));
+
             if (* (ptr_src) != * (ptr_tgt)) {
                 logging (boost::format ("MISCOMPARE on addr %d") % cnt);
                 logging (boost::format ("SOURCE DATA %#x") % (uint32_t) (*ptr_src));

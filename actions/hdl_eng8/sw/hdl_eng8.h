@@ -22,7 +22,7 @@
  * The ACTION control bits are defined in the following file.
  */
 //#include <snap_hls_if.h>
-#define ACTION_TYPE_HDL_ENG8     0x10140003	/* Action Type */
+#define ACTION_TYPE_HDL_ENG8     0x10140003 /* Action Type */
 #define ACTION_GLOBAL_INTERRUPT_CTRL   0x30
 #define ACTION_GLOBAL_INTERRUPT_MASK   0x34
 #define ACTION_STATUS_L                0x30
@@ -47,4 +47,4 @@
 #define ACTION_INIT_ADDR_LO            0x40
 #define ACTION_GLOBAL_DONE             0x44
 
-#endif	/* __HDL_ENG8__ */
+#endif  /* __HDL_ENG8__ */

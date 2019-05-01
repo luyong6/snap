@@ -55,17 +55,18 @@ void WorkerMemCopyJM::set_job_start_threshold (int in_threshold)
 
 int WorkerMemCopyJM::check()
 {
-    int rc = 0;
+    int total_num = 0;
 
     for (int i = 0; i < (int)m_bufs.size(); i++) {
         BufMemCopyJMPtr buf = boost::dynamic_pointer_cast<BufMemCopyJM> (m_bufs[i]);
 
-        if (buf->check()) {
-            rc = -1;
-        }
+        int rc = buf->check();
+        total_num += rc;
     }
 
-    return rc;
+    std::cout << "Total error on " << std::dec << total_num << " jobs!" << std::endl;
+
+    return total_num;
 }
 
 void WorkerMemCopyJM::append_job_desc (void* in_job_desc)
@@ -130,27 +131,33 @@ void WorkerMemCopyJM::check_buf_done()
                     std::cout << "Worker -- Job started with " << std::dec << m_job_desc_count << " jobs" << std::endl;
                 }
 
-                boost::this_thread::interruption_point();
             } else {
                 uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_DONE) & 0x00000001;
 
                 // Poll the status done bit
                 if (1 == reg_data) {
-                    count++;
-
-                    if (count >= 2) {
-                        break;
-                    }
+                    break;
                 } else {
-                    count = 0;
+                    boost::this_thread::sleep_for (boost::chrono::microseconds{100});
+                    count++;
                 }
             }
+
+            boost::this_thread::interruption_point();
         }
     }
 
     for (int i = 0; i < (int)m_bufs.size(); i++) {
         m_bufs[i]->stop();
     }
+
+    for (int i = 0; i < 8; i++) {
+        uint32_t reg_data = m_hw_mgr->reg_read (0x48 + (i * 4));
+        std::cout << "Kernel " << std::dec << i << " processed " << reg_data << " jobs." << std::endl;
+    }
+
+    uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_DONE) & 0x00000001;
+    std::cout << "Done " << reg_data << std::endl;
 
     std::cout << "Worker -- All jobs done" << std::endl;
 

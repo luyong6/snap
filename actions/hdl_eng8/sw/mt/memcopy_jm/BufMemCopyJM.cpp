@@ -141,16 +141,16 @@ void BufMemCopyJM::work_with_job (JobPtr in_job)
 
 int BufMemCopyJM::check()
 {
-    int rc = 0;
+    int err_jobs = 0;
 
     for (size_t i = 0; i < m_jobs.size(); i++) {
         JobMemCopyJMPtr job = boost::dynamic_pointer_cast<JobMemCopyJM> (m_jobs[i]);
 
         if (job->mem_check()) {
-            std::cerr << "Memory copy result error!" << std::endl;
-            rc = -1;
+            err_jobs ++;
         };
     }
 
-    return rc;
+    std::cout << "Memory copy result error on " << std::dec << err_jobs << " jobs!" << std::endl;
+    return err_jobs;
 }

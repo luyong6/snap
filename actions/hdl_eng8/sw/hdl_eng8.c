@@ -55,7 +55,7 @@ int main (int argc, char* argv[])
     int card_no = 0;
     int buf_num = 16; // By default, 16 buffers
     int job_num = 1; // By default, 1 jobs per buffer
-    int memcopy_size = 4096; // By default, 4K bytes to copy for each job
+    uint32_t memcopy_size = 4096; // By default, 4K bytes to copy for each job
     int timeout = 1; // By default, 1 seconds to wait for card attachment and interrupt
     bool interrupt = true; // By default, use interrupt mode
     bool debug = false; // By default, disable debug mode

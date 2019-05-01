@@ -25,7 +25,7 @@ typedef struct {
     int card_no;
     int job_num;
     int buf_num;
-    int memcopy_size;
+    uint32_t memcopy_size;
     int timeout;
     enum test_mode mode;
     bool debug;

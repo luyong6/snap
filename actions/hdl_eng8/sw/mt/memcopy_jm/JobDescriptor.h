@@ -18,13 +18,19 @@
 #define JOBDESCRIPTOR_H_h
 // Descriptor used by hardware job manager
 typedef struct {
-    uint32_t header;
-    uint32_t copy_length;
-    uint64_t mem_src;
-    uint64_t mem_dest;
-    uint64_t next_desc;
-    uint32_t user_config_len;
-    uint32_t user_config;
+    uint32_t header;         // 4
+    uint32_t copy_length;    // 8
+    uint64_t mem_src;        // 16
+    uint64_t mem_dest;       // 24
+    uint64_t next_desc;      // 32
+    uint32_t user_config_len;// 36
+    uint32_t user_config_0;  // 40
+    uint32_t user_config_1;  // 44
+    uint32_t user_config_2;  // 48
+    uint32_t user_config_3;  // 52
+    uint32_t user_config_4;  // 56
+    uint32_t user_config_5;  // 60
+    uint32_t user_config_7;  // 64
 } JobDescriptor;
 
 #endif
