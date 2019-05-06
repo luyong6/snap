@@ -92,14 +92,20 @@ void WorkerMemCopyJM::dump_job_desc()
 
     while (job_desc_ptr != NULL) {
         std::cout << "DESC[" << std::setfill ('0') << std::setw (4) << std::dec << count << "]" << std::endl;
-        std::cout << "PTR       0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint64_t) job_desc_ptr << std::endl;
-        std::cout << "HEADER    0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->header << std::endl;
-        std::cout << "LENGTH    0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->copy_length << std::endl;
-        std::cout << "SRC       0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->mem_src << std::endl;
-        std::cout << "DEST      0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->mem_dest << std::endl;
-        std::cout << "NEXT      0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->next_desc << std::endl;
-        std::cout << "USER LEN  0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_len << std::endl;
-        std::cout << "USER CONF 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config << std::endl;
+        std::cout << "PTR         0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint64_t) job_desc_ptr << std::endl;
+        std::cout << "HEADER      0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->header << std::endl;
+        std::cout << "LENGTH      0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->copy_length << std::endl;
+        std::cout << "SRC         0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->mem_src << std::endl;
+        std::cout << "DEST        0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->mem_dest << std::endl;
+        std::cout << "NEXT        0x" << std::setfill ('0') << std::setw (8) << std::hex << (uint64_t) job_desc_ptr->next_desc << std::endl;
+        std::cout << "USER LEN    0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_len << std::endl;
+        std::cout << "USER CONF 0 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_0 << std::endl;
+        std::cout << "USER CONF 1 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_1 << std::endl;
+        std::cout << "USER CONF 2 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_2 << std::endl;
+        std::cout << "USER CONF 3 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_3 << std::endl;
+        std::cout << "USER CONF 4 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_4 << std::endl;
+        std::cout << "USER CONF 5 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_5 << std::endl;
+        std::cout << "USER CONF 6 0x" << std::setfill ('0') << std::setw (4) << std::hex << (uint32_t) job_desc_ptr->user_config_6 << std::endl;
         job_desc_ptr = (JobDescriptor*) job_desc_ptr->next_desc;
         count ++;
     };

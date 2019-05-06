@@ -30,7 +30,7 @@ typedef struct {
     uint32_t user_config_3;  // 52
     uint32_t user_config_4;  // 56
     uint32_t user_config_5;  // 60
-    uint32_t user_config_7;  // 64
+    uint32_t user_config_6;  // 64
 } JobDescriptor;
 
 #endif
