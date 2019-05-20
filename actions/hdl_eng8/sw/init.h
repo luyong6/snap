@@ -38,5 +38,8 @@
 #define ACTION_KERNEL5_CNT             0x5C
 #define ACTION_KERNEL6_CNT             0x60
 #define ACTION_KERNEL7_CNT             0x64
+#define ACTION_CMPL_ADDR_HI            0x68
+#define ACTION_CMPL_ADDR_LO            0x6C
+#define ACTION_CMPL_SIZE               0x70
 
 #endif  /* __SNAP_INIT__ */

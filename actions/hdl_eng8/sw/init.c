@@ -156,12 +156,15 @@ static int do_action (struct snap_card* dnc,
 
     // source address
     addr = (uint64_t)dest;
+    action_write (dnc, ACTION_CMPL_ADDR_HI, (uint32_t) (addr >> 32));
+    action_read (dnc, ACTION_CMPL_ADDR_HI);
+    action_write (dnc, ACTION_CMPL_ADDR_LO, (uint32_t) (addr & 0xffffffff));
     addr = (uint64_t)src;
     action_write (dnc, ACTION_INIT_ADDR_HI, (uint32_t) (addr >> 32));
-    action_read (dnc, ACTION_INIT_ADDR_HI);
     action_write (dnc, ACTION_INIT_ADDR_LO, (uint32_t) (addr & 0xffffffff));
-    VERBOSE1 (" Write INIT_ADDR done! \n");
+    VERBOSE1 (" Write ADDR done! \n");
 
+    action_write (dnc, ACTION_CMPL_SIZE, 0x00100000);
     VERBOSE1 (" test!\n ");
     t_start = get_usec();
 
@@ -173,6 +176,8 @@ static int do_action (struct snap_card* dnc,
 
     //done
     while ((action_read (dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0) {;};
+
+    sleep(1);
 
     cntprint = action_read (dnc, ACTION_KERNEL0_CNT);
 
@@ -267,6 +272,7 @@ int main (int argc, char* argv[])
     int patt_size = 4096 * 4096;
     int delay = 100;
     int length = 16384;
+    int* completion = alloc_mem (64, 8192);
     int* init = alloc_mem (64, 64);
     void* src  = alloc_mem (64, patt_size);
     void* dest = alloc_mem (64, patt_size);
@@ -299,6 +305,7 @@ int main (int argc, char* argv[])
     void* dest9 = alloc_mem (64, patt_size);
     uint64_t td;
 
+    * init = 0x5A5A0000;
     * (init + 1) = (uint32_t)length;
     * (init + 2) = (uint32_t) ((uint64_t)src & 0xffffffff);
     * (init + 3) = (uint32_t) ((uint64_t)src >> 32);
@@ -308,6 +315,7 @@ int main (int argc, char* argv[])
     * (init + 7) = (uint32_t) ((uint64_t)init1 >> 32);
     * (init + 9) = (uint32_t)delay;
 
+    * init1 = 0x5A5A0100;
     * (init1 + 1) = (uint32_t)length;
     * (init1 + 2) = (uint32_t) ((uint64_t)src1 & 0xffffffff);
     * (init1 + 3) = (uint32_t) ((uint64_t)src1 >> 32);
@@ -317,6 +325,7 @@ int main (int argc, char* argv[])
     * (init1 + 7) = (uint32_t) ((uint64_t)init2 >> 32);
     * (init1 + 9) = (uint32_t)delay;
 
+    * init2 = 0x5A5A0200;
     * (init2 + 1) = (uint32_t)length;
     * (init2 + 2) = (uint32_t) ((uint64_t)src2 & 0xffffffff);
     * (init2 + 3) = (uint32_t) ((uint64_t)src2 >> 32);
@@ -326,6 +335,7 @@ int main (int argc, char* argv[])
     * (init2 + 7) = (uint32_t) ((uint64_t)init3 >> 32);
     * (init2 + 9) = (uint32_t)delay;
 
+    * init3 = 0x5A5A0300;
     * (init3 + 1) = (uint32_t)length;
     * (init3 + 2) = (uint32_t) ((uint64_t)src3 & 0xffffffff);
     * (init3 + 3) = (uint32_t) ((uint64_t)src3 >> 32);
@@ -335,6 +345,7 @@ int main (int argc, char* argv[])
     * (init3 + 7) = (uint32_t) ((uint64_t)init4 >> 32);
     * (init3 + 9) = (uint32_t)delay;
 
+    * init4 = 0x5A5A0400;
     * (init4 + 1) = (uint32_t)length;
     * (init4 + 2) = (uint32_t) ((uint64_t)src4 & 0xffffffff);
     * (init4 + 3) = (uint32_t) ((uint64_t)src4 >> 32);
@@ -344,6 +355,7 @@ int main (int argc, char* argv[])
     * (init4 + 7) = (uint32_t) ((uint64_t)init5 >> 32);
     * (init4 + 9) = (uint32_t)delay;
 
+    * init5 = 0x5A5A0500;
     * (init5 + 1) = (uint32_t)length;
     * (init5 + 2) = (uint32_t) ((uint64_t)src5 & 0xffffffff);
     * (init5 + 3) = (uint32_t) ((uint64_t)src5 >> 32);
@@ -353,6 +365,7 @@ int main (int argc, char* argv[])
     * (init5 + 7) = (uint32_t) ((uint64_t)init6 >> 32);
     * (init5 + 9) = (uint32_t)delay;
 
+    * init6 = 0x5A5A0600;
     * (init6 + 1) = (uint32_t)length;
     * (init6 + 2) = (uint32_t) ((uint64_t)src6 & 0xffffffff);
     * (init6 + 3) = (uint32_t) ((uint64_t)src6 >> 32);
@@ -362,6 +375,7 @@ int main (int argc, char* argv[])
     * (init6 + 7) = (uint32_t) ((uint64_t)init7 >> 32);
     * (init6 + 9) = (uint32_t)delay;
 
+    * init7 = 0x5A5A0700;
     * (init7 + 1) = (uint32_t)length;
     * (init7 + 2) = (uint32_t) ((uint64_t)src7 & 0xffffffff);
     * (init7 + 3) = (uint32_t) ((uint64_t)src7 >> 32);
@@ -371,6 +385,7 @@ int main (int argc, char* argv[])
     * (init7 + 7) = (uint32_t) ((uint64_t)init8 >> 32);
     * (init7 + 9) = (uint32_t)delay;
 
+    * init8 = 0x5A5A0800;
     * (init8 + 1) = (uint32_t)length;
     * (init8 + 2) = (uint32_t) ((uint64_t)src8 & 0xffffffff);
     * (init8 + 3) = (uint32_t) ((uint64_t)src8 >> 32);
@@ -380,6 +395,7 @@ int main (int argc, char* argv[])
     * (init8 + 7) = (uint32_t) ((uint64_t)init9 >> 32);
     * (init8 + 9) = (uint32_t)delay;
 
+    * init9 = 0x5A5A0900;
     * (init9 + 1) = (uint32_t)length;
     * (init9 + 2) = (uint32_t) ((uint64_t)src9 & 0xffffffff);
     * (init9 + 3) = (uint32_t) ((uint64_t)src9 >> 32);
@@ -490,7 +506,22 @@ int main (int argc, char* argv[])
     VERBOSE0 ("Finish get action.\n");
 
     VERBOSE0 ("Start memory copy.\n");
-    rc = do_action (dn, init, dest, &td);
+    rc = do_action (dn, init, completion, &td);
+
+    cmd = *completion;
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+10);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+11);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+12);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+13);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+14);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+15);
+    printf("completion data = %x \n",cmd);
 
     snap_detach_action (act);
 

@@ -150,7 +150,7 @@ parameter DONE  = 3;
 	always@(posedge clk or negedge rst_n)
 	if(!rst_n)
 	    count <= 5'b0;
-	else if(last_dump & (cur_state == WAIT))
+	else if(last_dump & (cur_state == DONE))
 	    count <= 5'b0;
 	else if(act != 'd0)
 	    count <= count + 1'b1;
@@ -183,7 +183,6 @@ parameter DONE  = 3;
     assign m_axi_wid      = 0;
     assign m_axi_wstrb    = 64'hffffffffffffffff;
     assign m_axi_bready   = 1'b1;
-    assign m_axi_wlast    = 1'b1;
 
 
     always@(posedge clk or negedge rst_n)
@@ -216,7 +215,7 @@ parameter DONE  = 3;
 	always@(posedge clk or negedge rst_n)
 	if(!rst_n)
 	    pingpong <= 1'b0;
-	else if(last_dump & (cur_state == WAIT))
+	else if(last_dump & (cur_state == DONE))
 	    pingpong <= 1'b0;
 	else if(cur_state == DONE)
 	    pingpong <= !pingpong;
@@ -229,10 +228,11 @@ parameter DONE  = 3;
 	else if(last_dump & (cur_state == DONE))
 	    last_dump <= 1'b0;
 
-    assign m_axi_wdata    = pingpong ? write_buf[1023:512] : write_buf[511:0];
+    assign m_axi_wdata    = pingpong ? write_buf[511:0] : write_buf[1023:512];
     assign m_axi_awaddr   = completion_addr + waddr_offside;
     assign m_axi_wvalid   = (cur_state == WRITE) & !wvalid_done;
     assign m_axi_awvalid  = (cur_state == WRITE) & !awvalid_done;
+    assign m_axi_wlast    = m_axi_wvalid;
 
 	always@(posedge clk or negedge rst_n)
 	if(!rst_n)
@@ -252,6 +252,8 @@ parameter DONE  = 3;
 
 	always@(posedge clk or negedge rst_n)
 	if(!rst_n)
+	    waddr_offside <= 'd0;
+	else if (cur_state == DONE & last_dump)
 	    waddr_offside <= 'd0;
 	else if (cur_state == DONE)
 	    waddr_offside <= waddr_offside + 'd64;
