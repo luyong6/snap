@@ -37,12 +37,16 @@ module axi_lite_global_slave #(
                       output            manager_start         ,
                       output            run_mode              ,
                       output     [63:0] init_addr             ,
+                      output     [63:0] completion_addr       ,
+                      output     [31:0] completion_size       ,
                       output            new_job               ,
                       output            job_done              ,
                       input             job_start             ,
-                      output reg [KERNEL_NUM-1:0]       kernel_start,
+                      output reg        real_done             ,
                       input      [31:0] i_action_type         ,
+                      output reg [KERNEL_NUM-1:0]       kernel_start,
                       input      [KERNEL_NUM-1:0]       kernel_complete,
+                      output     [KERNEL_NUM-1:0]       kernel_complete_posedge,
                       output     o_interrupt                  ,
                       input      i_interrupt_ack
                       );
@@ -61,7 +65,6 @@ module axi_lite_global_slave #(
  reg [31:0] completion_q;
  reg [KERNEL_NUM-1:0] kernel_complete_prev;
  reg [KERNEL_NUM-1:0] pending_completed_kernels;
- wire [KERNEL_NUM-1:0] kernel_complete_posedge;
  reg interrupt_req_reg;
  reg interrupt_wait_soft_clear;
  reg [KERNEL_NUM-1:0] kernel_busy;
@@ -75,6 +78,9 @@ module axi_lite_global_slave #(
  /**/   reg [31:0] REG_global_control        ;  /*RW*/
  /**/   reg [31:0] REG_init_addr_hi          ;  /*RW*/
  /**/   reg [31:0] REG_init_addr_lo          ;  /*RW*/
+ /**/   reg [31:0] REG_completion_addr_hi    ;  /*RW*/
+ /**/   reg [31:0] REG_completion_addr_lo    ;  /*RW*/
+ /**/   reg [31:0] REG_completion_size       ;  /*RW*/
  //                                               //
  //-----------------------------------------------//
  //                                               //
@@ -88,7 +94,6 @@ module axi_lite_global_slave #(
  reg [31:0] cnt5;
  reg [31:0] cnt6;
  reg [31:0] cnt7;
- reg        real_done;
  reg        job_done_r;
 
 //---- parameters ----
@@ -107,6 +112,9 @@ module axi_lite_global_slave #(
            ADDR_KERNEL5_CNT                  = 32'h5C,
            ADDR_KERNEL6_CNT                  = 32'h60,
            ADDR_KERNEL7_CNT                  = 32'h64,
+           ADDR_CMPL_ADDR_HI                 = 32'h68,
+           ADDR_CMPL_ADDR_LO                 = 32'h6C,
+           ADDR_CMPL_SIZE                    = 32'h70,
            ADDR_SNAP_ACTION_TYPE             = 32'h10;
 
 /***********************************************************************
@@ -334,6 +342,9 @@ assign REG_interrupt_mask_rd = REG_interrupt_mask;
        ADDR_INIT_ADDR_HI         : s_axi_rdata <= REG_init_addr_hi;
        ADDR_INIT_ADDR_LO         : s_axi_rdata <= REG_init_addr_lo;
        ADDR_GLOBAL_DONE          : s_axi_rdata <= {31'b0,real_done};
+       ADDR_CMPL_ADDR_HI         : s_axi_rdata <= REG_completion_addr_hi;
+       ADDR_CMPL_ADDR_LO         : s_axi_rdata <= REG_completion_addr_lo;
+       ADDR_CMPL_SIZE            : s_axi_rdata <= REG_completion_size;
        ADDR_KERNEL0_CNT          : s_axi_rdata <= cnt0;
        ADDR_KERNEL1_CNT          : s_axi_rdata <= cnt1;
        ADDR_KERNEL2_CNT          : s_axi_rdata <= cnt2;
@@ -387,6 +398,24 @@ assign REG_interrupt_mask_rd = REG_interrupt_mask;
 
 always@(posedge clk or negedge rst_n)
     if(!rst_n)
+        REG_completion_size <= 32'b0;
+    else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_CMPL_SIZE))
+        REG_completion_size <= s_axi_wdata;
+
+always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        REG_completion_addr_hi <= 32'b0;
+    else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_CMPL_ADDR_HI))
+        REG_completion_addr_hi <= s_axi_wdata;
+
+always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        REG_completion_addr_lo <= 32'b0;
+    else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_CMPL_ADDR_LO))
+        REG_completion_addr_lo <= s_axi_wdata;
+
+always@(posedge clk or negedge rst_n)
+    if(!rst_n)
         REG_init_addr_lo <= 32'b0;
     else if(s_axi_wvalid & s_axi_wready & (write_address == ADDR_INIT_ADDR_LO))
         REG_init_addr_lo <= s_axi_wdata;
@@ -406,6 +435,8 @@ always@(posedge clk or negedge rst_n)
 assign manager_start = REG_global_control[0];
 assign run_mode = REG_global_control[8];
 assign init_addr = {REG_init_addr_hi,REG_init_addr_lo};
+assign completion_addr = {REG_completion_addr_hi,REG_completion_addr_lo};
+assign completion_size = REG_completion_size;
 assign new_job = !(&kernel_busy);
 assign job_done = !(|kernel_busy);
 

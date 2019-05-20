@@ -175,11 +175,14 @@ module snap_action_shim #(
                        );
 
 wire      [KERNEL_NUM-1:0]         kernel_o_complete ;
+wire      [KERNEL_NUM-1:0]         kernel_complete_p ;
 wire      [KERNEL_NUM-1:0]         kernel_i_start    ;
 wire                               new_job           ;
 wire                               job_done          ;
 wire                               job_start         ;
 wire      [63:0]                   init_addr         ;
+wire      [63:0]                   completion_addr   ;
+wire      [31:0]                   completion_size   ;
 wire                               manager_start     ;
 wire                               run_mode          ;
 wire      [511:0]                  system_register   ;
@@ -871,48 +874,53 @@ host_axi_lite_crossbar_0 axi_lite_X (
            .DATA_WIDTH   (32                             ),
            .ADDR_WIDTH   (32                             )
  ) maxi_lite_global_slave (
-                                .clk                   (clk                   ),
-                                .rst_n                 (rst_n                 ),
-                                .s_axi_awready         (kernel_s_axi_snap_awready[8]    ),
-                                .s_axi_awaddr          (kernel_s_axi_snap_awaddr[8]     ),//32b
-                                .s_axi_awprot          (kernel_s_axi_snap_awprot[8]     ),//3b
-                                .s_axi_awvalid         (kernel_s_axi_snap_awvalid[8]    ),
-                                .s_axi_wready          (kernel_s_axi_snap_wready[8]     ),
-                                .s_axi_wdata           (kernel_s_axi_snap_wdata[8]      ),//32b
-                                .s_axi_wstrb           (kernel_s_axi_snap_wstrb[8]      ),//4b
-                                .s_axi_wvalid          (kernel_s_axi_snap_wvalid[8]     ),
-                                .s_axi_bresp           (kernel_s_axi_snap_bresp[8]      ),//2b
-                                .s_axi_bvalid          (kernel_s_axi_snap_bvalid[8]     ),
-                                .s_axi_bready          (kernel_s_axi_snap_bready[8]     ),
-                                .s_axi_arready         (kernel_s_axi_snap_arready[8]    ),
-                                .s_axi_arvalid         (kernel_s_axi_snap_arvalid[8]    ),
-                                .s_axi_araddr          (kernel_s_axi_snap_araddr[8]     ),//32b
-                                .s_axi_arprot          (kernel_s_axi_snap_arprot[8]     ),//3b
-                                .s_axi_rdata           (kernel_s_axi_snap_rdata[8]      ),//32b
-                                .s_axi_rresp           (kernel_s_axi_snap_rresp[8]      ),//2b
-                                .s_axi_rready          (kernel_s_axi_snap_rready[8]     ),
-                                .s_axi_rvalid          (kernel_s_axi_snap_rvalid[8]     ),
-                                .manager_start         (manager_start                   ),
-                                .run_mode              (run_mode                        ),
-                                .init_addr             (init_addr                       ),
-                                .new_job               (new_job                         ),
-                                .job_done              (job_done                        ),
-                                .job_start             (job_start                       ),
-                                .kernel_start          (kernel_i_start                  ),
-                                .i_action_type         (i_action_type                   ),
-                                .kernel_complete       (kernel_o_complete               ),
-                                .o_interrupt           (o_interrupt                     ),
-                                .i_interrupt_ack       (i_interrupt_ack                 )
+                                .clk                        (clk                   ),
+                                .rst_n                      (rst_n                 ),
+                                .s_axi_awready              (kernel_s_axi_snap_awready[8]    ),
+                                .s_axi_awaddr               (kernel_s_axi_snap_awaddr[8]     ),//32b
+                                .s_axi_awprot               (kernel_s_axi_snap_awprot[8]     ),//3b
+                                .s_axi_awvalid              (kernel_s_axi_snap_awvalid[8]    ),
+                                .s_axi_wready               (kernel_s_axi_snap_wready[8]     ),
+                                .s_axi_wdata                (kernel_s_axi_snap_wdata[8]      ),//32b
+                                .s_axi_wstrb                (kernel_s_axi_snap_wstrb[8]      ),//4b
+                                .s_axi_wvalid               (kernel_s_axi_snap_wvalid[8]     ),
+                                .s_axi_bresp                (kernel_s_axi_snap_bresp[8]      ),//2b
+                                .s_axi_bvalid               (kernel_s_axi_snap_bvalid[8]     ),
+                                .s_axi_bready               (kernel_s_axi_snap_bready[8]     ),
+                                .s_axi_arready              (kernel_s_axi_snap_arready[8]    ),
+                                .s_axi_arvalid              (kernel_s_axi_snap_arvalid[8]    ),
+                                .s_axi_araddr               (kernel_s_axi_snap_araddr[8]     ),//32b
+                                .s_axi_arprot               (kernel_s_axi_snap_arprot[8]     ),//3b
+                                .s_axi_rdata                (kernel_s_axi_snap_rdata[8]      ),//32b
+                                .s_axi_rresp                (kernel_s_axi_snap_rresp[8]      ),//2b
+                                .s_axi_rready               (kernel_s_axi_snap_rready[8]     ),
+                                .s_axi_rvalid               (kernel_s_axi_snap_rvalid[8]     ),
+                                .manager_start              (manager_start                   ),
+                                .run_mode                   (run_mode                        ),
+                                .init_addr                  (init_addr                       ),
+                                .completion_addr            (completion_addr                 ),
+                                .completion_size            (completion_size                 ),
+                                .new_job                    (new_job                         ),
+                                .job_done                   (job_done                        ),
+                                .job_start                  (job_start                       ),
+						        .real_done                  (real_done                       ),
+                                .kernel_start               (kernel_i_start                  ),
+                                .i_action_type              (i_action_type                   ),
+                                .kernel_complete            (kernel_o_complete               ),
+                                .kernel_complete_posedge    (kernel_complete_p               ),
+                                .o_interrupt                (o_interrupt                     ),
+                                .i_interrupt_ack            (i_interrupt_ack                 )
         );
 
-job_manager job_manager0 (
+completion_manager completion_manager0(
                         .clk                    (clk                    ),
                         .rst_n                  (rst_n                  ),
-                        .init_addr              (init_addr              ),
-                        .manager_start          (manager_start          ),
-                        .new_job                (new_job                ),
-                        .job_done               (job_done               ),
-                        .job_start              (job_start              ),
+                        .kernel_start           (kernel_i_start         ),
+                        .kernel_complete        (kernel_complete_p      ),
+                        .system_register        (system_register        ),
+                        .completion_addr        (completion_addr        ),
+                        .completion_size        (completion_size        ),
+						.real_done              (real_done              ),
 
                         //---- AXI bus interfaced with SNAP core ----
                           // AXI write address channel
@@ -937,10 +945,23 @@ job_manager job_manager0 (
                         .m_axi_wvalid      (job_m_axi_snap_wvalid      ),
                         .m_axi_wready      (job_m_axi_snap_wready      ),
                           // AXI write response channel
-                        .m_axi_bready     (job_m_axi_snap_bready     ),
+                        .m_axi_bready      (job_m_axi_snap_bready      ),
                         .m_axi_bid         (job_m_axi_snap_bid         ),
                         .m_axi_bresp       (job_m_axi_snap_bresp       ),
-                        .m_axi_bvalid      (job_m_axi_snap_bvalid      ),
+                        .m_axi_bvalid      (job_m_axi_snap_bvalid      )
+        );
+
+
+job_manager job_manager0 (
+                        .clk                    (clk                    ),
+                        .rst_n                  (rst_n                  ),
+                        .init_addr              (init_addr              ),
+                        .manager_start          (manager_start          ),
+                        .new_job                (new_job                ),
+                        .job_done               (job_done               ),
+                        .job_start              (job_start              ),
+
+                        //---- AXI bus interfaced with SNAP core ----
                           // AXI read address channel
                         .m_axi_arid        (job_m_axi_snap_arid        ),
                         .m_axi_araddr      (job_m_axi_snap_araddr      ),

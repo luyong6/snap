@@ -42,33 +42,6 @@ module job_manager #(
         input                             m_axi_rlast   ,
         input                             m_axi_rvalid  ,
 
-           // AXI write address channel
-        output     [ID_WIDTH - 1:0]       m_axi_awid    ,
-        output     [ADDR_WIDTH - 1:0]     m_axi_awaddr  ,
-        output     [007:0]                m_axi_awlen   ,
-        output     [002:0]                m_axi_awsize  ,
-        output     [001:0]                m_axi_awburst ,
-        output     [003:0]                m_axi_awcache ,
-        output     [001:0]                m_axi_awlock  ,
-        output     [002:0]                m_axi_awprot  ,
-        output     [003:0]                m_axi_awqos   ,
-        output     [003:0]                m_axi_awregion,
-        output     [AWUSER_WIDTH - 1:0]   m_axi_awuser  ,
-        output                            m_axi_awvalid ,
-        input                             m_axi_awready ,
-           // AXI write data channel
-        output     [ID_WIDTH - 1:0]       m_axi_wid     ,
-        output     [DATA_WIDTH - 1:0]     m_axi_wdata   ,
-        output     [(DATA_WIDTH/8) - 1:0] m_axi_wstrb   ,
-        output                            m_axi_wlast   ,
-        output                            m_axi_wvalid  ,
-        input                             m_axi_wready  ,
-           // AXI write response channel
-        output                            m_axi_bready  ,
-        input      [ID_WIDTH - 1:0]       m_axi_bid     ,
-        input      [001:0]                m_axi_bresp   ,
-        input                             m_axi_bvalid  ,
-
         //output
         output reg [511:0]                system_register       ,
         output reg [511:0]                user_register
@@ -141,26 +114,6 @@ parameter WAIT = 7;
         default:
             nxt_state = IDLE;
         endcase
-
-    assign m_axi_awid     = 0;
-    assign m_axi_awaddr   = 0;
-    assign m_axi_awlen    = 8'b00000000;
-    assign m_axi_awsize   = 3'b000;
-    assign m_axi_awburst  = 2'b00;
-    assign m_axi_awcache  = 4'b0000;
-    assign m_axi_awlock   = 2'b00;
-    assign m_axi_awprot   = 3'b000;
-    assign m_axi_awqos    = 4'b0000;
-    assign m_axi_awregion = 4'b0000;
-    assign m_axi_awuser   = 0;
-    assign m_axi_awvalid  = 1'b0;
-    assign m_axi_wid      = 0;
-    assign m_axi_wdata    = 0;
-    assign m_axi_wstrb    = 0;
-    assign m_axi_wlast    = 1'b0;
-    assign m_axi_wvalid   = 1'b0;
-    assign m_axi_wready   = 1'b0;
-    assign m_axi_bready   = 1'b0;
 
     assign m_axi_arid     = 0;
     assign m_axi_arsize   = 3'd6; // 2^6=512
