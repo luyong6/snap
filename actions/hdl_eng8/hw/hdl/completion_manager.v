@@ -97,14 +97,14 @@ parameter DONE  = 3;
 	if(!rst_n)
 	    complete_data = 'd0;
     else casex(act)
-	    8'b1xxxxxxx: complete_data = {8'b1,thread7_id};
-	    8'b01xxxxxx: complete_data = {8'b1,thread6_id};
-	    8'b001xxxxx: complete_data = {8'b1,thread5_id};
-	    8'b0001xxxx: complete_data = {8'b1,thread4_id};
-	    8'b00001xxx: complete_data = {8'b1,thread3_id};
-	    8'b000001xx: complete_data = {8'b1,thread2_id};
-	    8'b0000001x: complete_data = {8'b1,thread1_id};
-	    8'b00000001: complete_data = {8'b1,thread0_id};
+	    8'b1xxxxxxx: complete_data = {thread7_id,8'b1};
+	    8'b01xxxxxx: complete_data = {thread6_id,8'b1};
+	    8'b001xxxxx: complete_data = {thread5_id,8'b1};
+	    8'b0001xxxx: complete_data = {thread4_id,8'b1};
+	    8'b00001xxx: complete_data = {thread3_id,8'b1};
+	    8'b000001xx: complete_data = {thread2_id,8'b1};
+	    8'b0000001x: complete_data = {thread1_id,8'b1};
+	    8'b00000001: complete_data = {thread0_id,8'b1};
         default    : complete_data = 32'd0;
     endcase
 
@@ -113,38 +113,38 @@ parameter DONE  = 3;
 	    write_buf <= 1024'b0;
 	else if(act != 'd0)
 	    case(count)
-	        5'b00000: write_buf <= {complete_data,write_buf[991:0]};
-	        5'b00001: write_buf <= {write_buf[1023:992],complete_data,write_buf[959:0]};
-	        5'b00010: write_buf <= {write_buf[1023:960],complete_data,write_buf[927:0]};
-	        5'b00011: write_buf <= {write_buf[1023:928],complete_data,write_buf[895:0]};
-	        5'b00100: write_buf <= {write_buf[1023:896],complete_data,write_buf[863:0]};
-	        5'b00101: write_buf <= {write_buf[1023:864],complete_data,write_buf[831:0]};
-	        5'b00110: write_buf <= {write_buf[1023:832],complete_data,write_buf[799:0]};
-	        5'b00111: write_buf <= {write_buf[1023:800],complete_data,write_buf[767:0]};
-	        5'b01000: write_buf <= {write_buf[1023:768],complete_data,write_buf[735:0]};
-	        5'b01001: write_buf <= {write_buf[1023:736],complete_data,write_buf[703:0]};
-	        5'b01010: write_buf <= {write_buf[1023:704],complete_data,write_buf[671:0]};
-	        5'b01011: write_buf <= {write_buf[1023:672],complete_data,write_buf[639:0]};
-	        5'b01100: write_buf <= {write_buf[1023:640],complete_data,write_buf[607:0]};
-	        5'b01101: write_buf <= {write_buf[1023:608],complete_data,write_buf[575:0]};
-	        5'b01110: write_buf <= {write_buf[1023:576],complete_data,write_buf[543:0]};
-	        5'b01111: write_buf <= {write_buf[1023:544],complete_data,write_buf[511:0]};
-	        5'b10000: write_buf <= {write_buf[1023:512],complete_data,write_buf[479:0]};
-	        5'b10001: write_buf <= {write_buf[1023:480],complete_data,write_buf[447:0]};
-	        5'b10010: write_buf <= {write_buf[1023:448],complete_data,write_buf[415:0]};
-	        5'b10011: write_buf <= {write_buf[1023:416],complete_data,write_buf[383:0]};
-	        5'b10100: write_buf <= {write_buf[1023:384],complete_data,write_buf[351:0]};
-	        5'b10101: write_buf <= {write_buf[1023:352],complete_data,write_buf[319:0]};
-	        5'b10110: write_buf <= {write_buf[1023:320],complete_data,write_buf[287:0]};
-	        5'b10111: write_buf <= {write_buf[1023:288],complete_data,write_buf[255:0]};
-	        5'b11000: write_buf <= {write_buf[1023:256],complete_data,write_buf[223:0]};
-	        5'b11001: write_buf <= {write_buf[1023:224],complete_data,write_buf[191:0]};
-	        5'b11010: write_buf <= {write_buf[1023:192],complete_data,write_buf[159:0]};
-	        5'b11011: write_buf <= {write_buf[1023:160],complete_data,write_buf[127:0]};
-	        5'b11100: write_buf <= {write_buf[1023:128],complete_data,write_buf[95:0]};
-	        5'b11101: write_buf <= {write_buf[1023:96],complete_data,write_buf[63:0]};
-	        5'b11110: write_buf <= {write_buf[1023:64],complete_data,write_buf[31:0]};
-	        5'b11111: write_buf <= {write_buf[1023:32],complete_data};
+	        5'b11111: write_buf <= {complete_data,write_buf[991:0]};
+	        5'b11110: write_buf <= {write_buf[1023:992],complete_data,write_buf[959:0]};
+	        5'b11101: write_buf <= {write_buf[1023:960],complete_data,write_buf[927:0]};
+	        5'b11100: write_buf <= {write_buf[1023:928],complete_data,write_buf[895:0]};
+	        5'b11011: write_buf <= {write_buf[1023:896],complete_data,write_buf[863:0]};
+	        5'b11010: write_buf <= {write_buf[1023:864],complete_data,write_buf[831:0]};
+	        5'b11001: write_buf <= {write_buf[1023:832],complete_data,write_buf[799:0]};
+	        5'b11000: write_buf <= {write_buf[1023:800],complete_data,write_buf[767:0]};
+	        5'b10111: write_buf <= {write_buf[1023:768],complete_data,write_buf[735:0]};
+	        5'b10110: write_buf <= {write_buf[1023:736],complete_data,write_buf[703:0]};
+	        5'b10101: write_buf <= {write_buf[1023:704],complete_data,write_buf[671:0]};
+	        5'b10100: write_buf <= {write_buf[1023:672],complete_data,write_buf[639:0]};
+	        5'b10011: write_buf <= {write_buf[1023:640],complete_data,write_buf[607:0]};
+	        5'b10010: write_buf <= {write_buf[1023:608],complete_data,write_buf[575:0]};
+	        5'b10001: write_buf <= {write_buf[1023:576],complete_data,write_buf[543:0]};
+	        5'b10000: write_buf <= {write_buf[1023:544],complete_data,write_buf[511:0]};
+	        5'b01111: write_buf <= {write_buf[1023:512],complete_data,write_buf[479:0]};
+	        5'b01110: write_buf <= {write_buf[1023:480],complete_data,write_buf[447:0]};
+	        5'b01101: write_buf <= {write_buf[1023:448],complete_data,write_buf[415:0]};
+	        5'b01100: write_buf <= {write_buf[1023:416],complete_data,write_buf[383:0]};
+	        5'b01011: write_buf <= {write_buf[1023:384],complete_data,write_buf[351:0]};
+	        5'b01010: write_buf <= {write_buf[1023:352],complete_data,write_buf[319:0]};
+	        5'b01001: write_buf <= {write_buf[1023:320],complete_data,write_buf[287:0]};
+	        5'b01000: write_buf <= {write_buf[1023:288],complete_data,write_buf[255:0]};
+	        5'b00111: write_buf <= {write_buf[1023:256],complete_data,write_buf[223:0]};
+	        5'b00110: write_buf <= {write_buf[1023:224],complete_data,write_buf[191:0]};
+	        5'b00101: write_buf <= {write_buf[1023:192],complete_data,write_buf[159:0]};
+	        5'b00100: write_buf <= {write_buf[1023:160],complete_data,write_buf[127:0]};
+	        5'b00011: write_buf <= {write_buf[1023:128],complete_data,write_buf[95:0]};
+	        5'b00010: write_buf <= {write_buf[1023:96],complete_data,write_buf[63:0]};
+	        5'b00001: write_buf <= {write_buf[1023:64],complete_data,write_buf[31:0]};
+	        5'b00000: write_buf <= {write_buf[1023:32],complete_data};
 	    endcase
 		
 	always@(posedge clk or negedge rst_n)
@@ -228,7 +228,7 @@ parameter DONE  = 3;
 	else if(last_dump & (cur_state == DONE))
 	    last_dump <= 1'b0;
 
-    assign m_axi_wdata    = pingpong ? write_buf[511:0] : write_buf[1023:512];
+    assign m_axi_wdata    = pingpong ? write_buf[1023:512] : write_buf[511:0];
     assign m_axi_awaddr   = completion_addr + waddr_offside;
     assign m_axi_wvalid   = (cur_state == WRITE) & !wvalid_done;
     assign m_axi_awvalid  = (cur_state == WRITE) & !awvalid_done;
