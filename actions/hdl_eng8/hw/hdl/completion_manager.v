@@ -81,7 +81,7 @@ parameter DONE  = 3;
         completion_enable <= 1'b0;
     else if(kernel_start != 'd0)
         completion_enable <= 1'b1;
-    else if(real_done & (cur_state == IDLE) & (count[3:0] == 'd0))
+    else if(real_done & (cur_state == IDLE) & (count[3:0] == 'd0) & (pingpong == count[4]))
         completion_enable <= 1'b0;
 
     always@(posedge clk or negedge rst_n) if(!rst_n) thread0_id <= 24'b0;
@@ -223,7 +223,7 @@ parameter DONE  = 3;
     always@(posedge clk or negedge rst_n)
     if(!rst_n)
         pingpong <= 1'b0;
-    else if(!completion_enable)
+    else if((last_dump & (cur_state == DONE)) | !completion_enable)
         pingpong <= 1'b0;
     else if(cur_state == DONE)
         pingpong <= !pingpong;
@@ -231,7 +231,7 @@ parameter DONE  = 3;
     always@(posedge clk or negedge rst_n)
     if(!rst_n)
         last_dump <= 1'b0;
-    else if(real_done & (count[3:0] != 'd0) & (cur_state == IDLE))
+    else if(real_done & ((count[3:0] != 'd0) | (pingpong == !count[4])) & (cur_state == IDLE))
         last_dump <= 1'b1;
     else if(last_dump & (cur_state == DONE))
         last_dump <= 1'b0;

@@ -232,10 +232,10 @@ always @(posedge clk or negedge rst_n) begin
         additional_cycle_counter <= 32'h0;
     end
     else if (pattern_memcpy_enable) begin
-	additional_cycle_counter <= REG_add_wait_cycle;
+        additional_cycle_counter <= REG_add_wait_cycle;
     end
     else if (actual_memcpy_done == 1'b1 && additional_cycle_counter > 0) begin
-	additional_cycle_counter <= additional_cycle_counter - 1;
+        additional_cycle_counter <= additional_cycle_counter - 1;
     end
 end
 
@@ -258,7 +258,7 @@ always @(posedge clk or negedge rst_n) begin
         idle_q <= idle;
         reg_snap_status_bit0 <= REG_snap_status[0];
 
-	// Action Status bit 0 means action done
+        // Action Status bit 0 means action done
         if ((REG_status[0] == 1)) begin
             app_done_q <= 1;
         end else begin
