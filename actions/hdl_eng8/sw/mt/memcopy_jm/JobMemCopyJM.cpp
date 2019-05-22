@@ -146,6 +146,11 @@ int JobMemCopyJM::mem_copy()
     JobDescriptor* job_desc_ptr = (JobDescriptor*) aalloc (64, sizeof (JobDescriptor));
     memset (job_desc_ptr, 0, sizeof (JobDescriptor));
 
+    // TODO: use 8 bit for buf id (maximum 256 bufs/threads)
+    // TODO: use 16 bit for job id (maximum 65536bufs/threads)
+    // |<- 8 ->|<- 16 ->|<- 8 ->|
+    // | bufid |  jobid |  resv |
+    job_desc_ptr->header = (((uint32_t) (((m_buf_id & 0xFF) << 16) | (m_id & 0xFFFF))) << 8);
     job_desc_ptr->copy_length = (uint32_t) m_size;
     job_desc_ptr->mem_src = (uint64_t) m_src;
     job_desc_ptr->mem_dest = (uint64_t) m_dest;

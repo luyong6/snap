@@ -177,7 +177,7 @@ static int do_action (struct snap_card* dnc,
     //done
     while ((action_read (dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0) {;};
 
-    sleep(1);
+    //sleep(5);
 
     cntprint = action_read (dnc, ACTION_KERNEL0_CNT);
 
@@ -508,7 +508,9 @@ int main (int argc, char* argv[])
     VERBOSE0 ("Start memory copy.\n");
     rc = do_action (dn, init, completion, &td);
 
-    cmd = *completion;
+    //cmd = *completion;
+    //printf("completion data = %x \n",cmd);
+    cmd = *(completion+0);
     printf("completion data = %x \n",cmd);
     cmd = *(completion+1);
     printf("completion data = %x \n",cmd);

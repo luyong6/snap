@@ -48,6 +48,12 @@ public:
     // Set the job descriptor start threshold
     void set_job_start_threshold (int in_threshold);
 
+    // Set up the completion queue
+    int setup_completion_queue (int in_size);
+
+    // Check if the result in completion queue is expected
+    int check_completion_queue ();
+
 private:
     // Use interrupt or poll to check buffer done?
     bool m_interrupt;
@@ -60,6 +66,12 @@ private:
     // Update to this pointer should be guarded by mutex (m_job_desc_mutex)
     void* m_job_desc_head;
     void* m_job_desc_tail;
+
+    // The pointer to completion queue
+    void* m_completion_queue_ptr;
+
+    // The size of completion queue (in bytes)
+    int m_completion_queue_size;
 
     // Total count of job descriptors
     int m_job_desc_count;
