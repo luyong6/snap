@@ -171,7 +171,7 @@ module snap_action_shim #(
                         input      [31:0]  i_action_type            ,
                         input      [31:0]  i_action_version         ,
                         output             o_interrupt              ,
-                        input              i_interrupt_ack 
+                        input              i_interrupt_ack
                        );
 
 wire      [KERNEL_NUM-1:0]         kernel_o_complete ;
@@ -903,7 +903,7 @@ host_axi_lite_crossbar_0 axi_lite_X (
                                 .new_job                    (new_job                         ),
                                 .job_done                   (job_done                        ),
                                 .job_start                  (job_start                       ),
-						        .real_done                  (real_done                       ),
+                                .real_done                  (real_done                       ),
                                 .kernel_start               (kernel_i_start                  ),
                                 .i_action_type              (i_action_type                   ),
                                 .kernel_complete            (kernel_o_complete               ),
@@ -920,7 +920,7 @@ completion_manager completion_manager0(
                         .system_register        (system_register        ),
                         .completion_addr        (completion_addr        ),
                         .completion_size        (completion_size        ),
-						.real_done              (real_done              ),
+                        .real_done              (real_done              ),
 
                         //---- AXI bus interfaced with SNAP core ----
                           // AXI write address channel
