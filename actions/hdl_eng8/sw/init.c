@@ -177,7 +177,7 @@ static int do_action (struct snap_card* dnc,
     //done
     while ((action_read (dnc, ACTION_GLOBAL_DONE) & 0x00000001) == 0) {;};
 
-    sleep(1);
+    //sleep(5);
 
     cntprint = action_read (dnc, ACTION_KERNEL0_CNT);
 
@@ -508,19 +508,27 @@ int main (int argc, char* argv[])
     VERBOSE0 ("Start memory copy.\n");
     rc = do_action (dn, init, completion, &td);
 
-    cmd = *completion;
+    //cmd = *completion;
+    //printf("completion data = %x \n",cmd);
+    cmd = *(completion+0);
     printf("completion data = %x \n",cmd);
-    cmd = *(completion+10);
+    cmd = *(completion+1);
     printf("completion data = %x \n",cmd);
-    cmd = *(completion+11);
+    cmd = *(completion+2);
     printf("completion data = %x \n",cmd);
-    cmd = *(completion+12);
+    cmd = *(completion+3);
     printf("completion data = %x \n",cmd);
-    cmd = *(completion+13);
+    cmd = *(completion+4);
     printf("completion data = %x \n",cmd);
-    cmd = *(completion+14);
+    cmd = *(completion+5);
     printf("completion data = %x \n",cmd);
-    cmd = *(completion+15);
+    cmd = *(completion+6);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+7);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+8);
+    printf("completion data = %x \n",cmd);
+    cmd = *(completion+9);
     printf("completion data = %x \n",cmd);
 
     snap_detach_action (act);

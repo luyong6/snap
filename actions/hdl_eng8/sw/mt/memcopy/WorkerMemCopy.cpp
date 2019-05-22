@@ -62,6 +62,12 @@ void WorkerMemCopy::check_buf_done()
         return;
     }
 
+    // TODO: workaround the completion queue issue
+    void* cq_ptr = malloc (8192);
+    m_hw_mgr->reg_write (ACTION_CMPL_ADDR_HI, (uint32_t) (((uint64_t)cq_ptr) >> 32));
+    m_hw_mgr->reg_write (ACTION_CMPL_ADDR_LO, (uint32_t) (((uint64_t)cq_ptr) & 0xFFFFFFFF));
+    m_hw_mgr->reg_write (ACTION_CMPL_SIZE, (uint32_t) 8192);
+
     while (true) {
         bool all_done = true;
 

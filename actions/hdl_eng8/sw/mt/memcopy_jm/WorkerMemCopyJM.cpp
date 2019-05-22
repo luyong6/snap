@@ -24,6 +24,8 @@ WorkerMemCopyJM::WorkerMemCopyJM (HardwareManagerPtr in_hw_mgr, bool in_debug)
       m_interrupt (true),
       m_job_desc_head (NULL),
       m_job_desc_tail (NULL),
+      m_completion_queue_ptr (NULL),
+      m_completion_queue_size (0),
       m_job_desc_count (0),
       m_job_start_threshold (16),
       m_job_started (false),
@@ -66,7 +68,53 @@ int WorkerMemCopyJM::check()
 
     std::cout << "Total error on " << std::dec << total_num << " jobs!" << std::endl;
 
+    if (check_completion_queue()) {
+        // Make sure the return number is not zero when there is error in queue.
+        return total_num + 1;
+    }
+
     return total_num;
+}
+
+int WorkerMemCopyJM::setup_completion_queue (int in_size)
+{
+    m_completion_queue_ptr = malloc (in_size);
+
+    if (NULL == m_completion_queue_ptr) {
+        std::cerr << "Unable to allocate memory for completion queue, expected queue size "
+                  << std::dec << in_size << std::endl;
+        return 1;
+    }
+
+    memset (m_completion_queue_ptr, 0, in_size);
+
+    m_completion_queue_size = in_size;
+
+    return 0;
+}
+
+int WorkerMemCopyJM::check_completion_queue ()
+{
+    if (NULL == m_completion_queue_ptr) {
+        std::cerr << "Invalid pointer to completion queue" << std::endl;
+        std::cerr << "Checking failed" << std::endl;
+        return 1;
+    }
+
+    uint32_t* ptr = (uint32_t*) m_completion_queue_ptr;
+    for (int i = 0; i < (m_completion_queue_size / 4); i++) {
+        std::cout << "Completion queue " << std::dec << i << " 0x" << std::hex << ptr[i] << std::endl;
+        //if ((ptr[i] & 0xFF) != 0x1) {
+            //std::cerr << "Checking failed on buf id " << std::dec
+            //    << ((ptr[i] & 0xFFFF0000) >> 16)
+            //    << ", job id "
+            //    << ((ptr[i] & 0x0000FF00) >> 8) << std::endl;
+            //std::cerr << "Checking failed" << std::endl;
+        //    return 1;
+        //}
+    }
+
+    return 0;
 }
 
 void WorkerMemCopyJM::append_job_desc (void* in_job_desc)
@@ -113,6 +161,12 @@ void WorkerMemCopyJM::dump_job_desc()
 
 void WorkerMemCopyJM::check_buf_done()
 {
+    if (NULL == m_completion_queue_ptr) {
+        std::cerr << "Invalid pointer to completion queue" << std::endl;
+        std::cerr << "Doing nothing ... " << std::endl;
+        return;
+    }
+
     if (m_interrupt) {
         std::cout << "Interrupt mode is not supported yet!" << std::endl;
     } else {
@@ -124,6 +178,9 @@ void WorkerMemCopyJM::check_buf_done()
                 boost::lock_guard<boost::mutex> lock (m_job_desc_mutex);
 
                 if (m_job_desc_count >= m_job_start_threshold) {
+                    m_hw_mgr->reg_write (ACTION_CMPL_ADDR_HI, (uint32_t) (((uint64_t)m_completion_queue_ptr) >> 32));
+                    m_hw_mgr->reg_write (ACTION_CMPL_ADDR_LO, (uint32_t) (((uint64_t)m_completion_queue_ptr) & 0xFFFFFFFF));
+                    m_hw_mgr->reg_write (ACTION_CMPL_SIZE, (uint32_t) m_completion_queue_size);
                     m_hw_mgr->reg_write (ACTION_INIT_ADDR_HI, (uint32_t) (((uint64_t)m_job_desc_head) >> 32));
                     m_hw_mgr->reg_write (ACTION_INIT_ADDR_LO, (uint32_t) (((uint64_t)m_job_desc_head) & 0xFFFFFFFF));
                     m_hw_mgr->reg_write (ACTION_GLOBAL_CONTROL, 0X00000101);
@@ -166,6 +223,5 @@ void WorkerMemCopyJM::check_buf_done()
     std::cout << "Done " << reg_data << std::endl;
 
     std::cout << "Worker -- All jobs done" << std::endl;
-
 }
 

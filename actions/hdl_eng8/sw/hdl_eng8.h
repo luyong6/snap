@@ -46,5 +46,8 @@
 #define ACTION_INIT_ADDR_HI            0x3C
 #define ACTION_INIT_ADDR_LO            0x40
 #define ACTION_GLOBAL_DONE             0x44
+#define ACTION_CMPL_ADDR_HI            0x68
+#define ACTION_CMPL_ADDR_LO            0x6C
+#define ACTION_CMPL_SIZE               0x70
 
 #endif  /* __HDL_ENG8__ */

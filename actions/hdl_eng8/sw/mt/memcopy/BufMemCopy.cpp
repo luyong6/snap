@@ -116,7 +116,7 @@ void BufMemCopy::work_with_job (JobPtr in_job)
 
     do {
         // Lock between buffers (each buffer would have a thread working on it).
-        // At one time, only 1 thread is allowed to touching the AXI-lite bus
+        // At one time, only 1 thread is allowed to touch the AXI-lite bus
         //boost::lock_guard<boost::mutex> lock (BufMemCopy::m_global_mutex);
 
         if (0 != job->run()) {
