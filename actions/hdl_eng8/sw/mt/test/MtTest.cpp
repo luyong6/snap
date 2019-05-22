@@ -137,6 +137,8 @@ int mt_jm_test_16_threads (test_params in_params)
 
     std::cout << "Finish setting up jobs." << std::endl;
 
+    worker->setup_completion_queue (in_params.buf_num * in_params.job_num * 4);
+
     high_resolution_clock::time_point t_start = high_resolution_clock::now();
     // Start work
     worker->start();

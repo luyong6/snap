@@ -56,6 +56,12 @@ void WorkerBase::start()
     // Clear the interrupt status
     uint32_t reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
     m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
+    reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
+    m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
+    reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
+    m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
+    reg_data = m_hw_mgr->reg_read (ACTION_GLOBAL_INTERRUPT_MASK);
+    m_hw_mgr->reg_write (ACTION_GLOBAL_INTERRUPT_CTRL, reg_data);
 
     for (int i = 0; i < (int)m_bufs.size(); i++) {
         m_bufs[i]->start();
