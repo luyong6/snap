@@ -1,7 +1,7 @@
 ############################################################################
 ############################################################################
 ##
-## Copyright 2016-2018 International Business Machines
+## Copyright 2016-2019 International Business Machines
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
 ## you may not use this file except in compliance with the License.
@@ -66,6 +66,10 @@ if { [info exists ::env(PSL_DCP)] == 1 } {
 puts "\[CREATE_FRAMEWORK....\] start [clock format [clock seconds] -format {%T %a %b %d %Y}]"
 create_project framework $root_dir/viv_project -part $fpga_part -force >> $log_file
 
+if { $fpga_card eq "U200" } {
+  set_property board_part xilinx.com:au200:part0:1.0 [current_project]
+}
+
 # Project Settings
 # General
 puts "                        setting up project settings"
@@ -93,7 +97,13 @@ set_property STEPS.SYNTH_DESIGN.ARGS.SHREG_MIN_SIZE            5       [get_runs
 set_property STEPS.SYNTH_DESIGN.ARGS.KEEP_EQUIVALENT_REGISTERS true    [get_runs synth_1]
 set_property STEPS.SYNTH_DESIGN.ARGS.NO_LC                     true    [get_runs synth_1]
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY         rebuilt [get_runs synth_1]
-# Implementaion
+# Implementation
+# AD9H3 PSL doesn't time well with default strategy
+  if { ($fpga_card == "AD9H3") } {
+        set_property strategy Performance_ExplorePostRoutePhysOpt [get_runs impl_1]
+# with following strategy, we experimented programming issue when flashing capi primary flash 
+#        set_property strategy Performance_Explore [get_runs impl_1]
+     }
 set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE Explore [get_runs impl_1]
 set_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE Explore [get_runs impl_1]
 set_property STEPS.PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
@@ -164,6 +174,12 @@ if { $simulator != "nosim" } {
     set_property used_in_synthesis false           [get_files $sim_dir/core/ddr4_dimm_s121b.sv]
   }
   # DDR4 Sim Files
+  if { ($fpga_card == "U200") && ($sdram_used == "TRUE") } {
+    add_files    -fileset sim_1 -norecurse -scan_for_includes $ip_dir/ddr4sdram_ex/imports/ddr4_model.sv  >> $log_file
+    add_files    -fileset sim_1 -norecurse -scan_for_includes $sim_dir/core/ddr4_dimm_u200.sv  >> $log_file
+    set_property used_in_synthesis false           [get_files $sim_dir/core/ddr4_dimm_u200.sv]
+  }
+  # DDR4 Sim Files
   if { ($fpga_card == "S121B") && ($sdram_used == "TRUE") } {
     add_files    -fileset sim_1 -norecurse -scan_for_includes $ip_dir/ddr4sdram_ex/imports/ddr4_model.sv  >> $log_file
     add_files    -fileset sim_1 -norecurse -scan_for_includes $sim_dir/core/ddr4_dimm_s121b.sv  >> $log_file
@@ -181,6 +197,7 @@ if { $simulator != "nosim" } {
     add_files    -fileset sim_1 -norecurse -scan_for_includes $sim_dir/core/ddr4_dimm_s121b.sv  >> $log_file
     set_property used_in_synthesis false           [get_files $sim_dir/core/ddr4_dimm_s121b.sv]
   }
+  # NOTE AD9H3 has no DDR attached, uses HBM instead
 }
 
 # Add IP
@@ -239,11 +256,16 @@ if { $nvme_used == TRUE } {
 
 # Add CAPI board support
 if { ($capi_ver == "capi20") && [file exists $capi_bsp_dir/capi_bsp_wrap.xcix] } {
-  puts "                        importing CAPI BSP"
+  puts "                        importing CAPI BSP (xcix)"
   set_property ip_repo_paths "[file normalize $capi_bsp_dir]" [current_project] >> $log_file
   update_ip_catalog >> $log_file
 
   add_files -norecurse                  $capi_bsp_dir/capi_bsp_wrap.xcix -force >> $log_file
+  export_ip_user_files -of_objects      [get_files capi_bsp_wrap.xci] -no_script -sync -force >> $log_file
+  set_property used_in_simulation false [get_files capi_bsp_wrap.xci] >> $log_file
+} elseif { ($capi_ver == "capi20") && [file exists $capi_bsp_dir/capi_bsp_wrap/capi_bsp_wrap.xci] } {
+  puts "                        importing CAPI BSP (xci)"
+  add_files -norecurse $capi_bsp_dir/capi_bsp_wrap/capi_bsp_wrap.xci -force >> $log_file
   export_ip_user_files -of_objects      [get_files capi_bsp_wrap.xci] -no_script -sync -force >> $log_file
   set_property used_in_simulation false [get_files capi_bsp_wrap.xci] >> $log_file
 } elseif { ($capi_ver == "capi10") && ($psl_dcp != "FALSE") } {
@@ -297,11 +319,12 @@ if { $fpga_card == "ADKU3" } {
     add_files -fileset constrs_1 -norecurse  $root_dir/setup/$fpga_card/snap_ddr4pins.xdc
     set_property used_in_synthesis false [get_files $root_dir/setup/$fpga_card/snap_ddr4pins.xdc]
   }
-} elseif { ($fpga_card == "S241") } {
+} elseif { ($fpga_card == "S241")  || ($fpga_card == "U200") } {
   if { $sdram_used == "TRUE" } {
     add_files -fileset constrs_1 -norecurse  $root_dir/setup/$fpga_card/snap_ddr4pins.xdc
     set_property used_in_synthesis false [get_files $root_dir/setup/$fpga_card/snap_ddr4pins.xdc]
   }
+
 } elseif { ($fpga_card == "N250S") || ($fpga_card == "N250SP") } {
   if { $sdram_used == "TRUE" } {
     add_files -fileset constrs_1 -norecurse  $root_dir/setup/$fpga_card/snap_ddr4pins.xdc

@@ -45,6 +45,7 @@ help:
 	@echo "* hardware       Build simulation model and FPGA bitstream (combines targets 'model' and 'image')";
 	@echo "* hw_project     Create Vivado project";
 	@echo "* sim            Start a simulation";
+	@echo "* sim_tmux       Start a simulation in tmux";
 	@echo "* software       Build software libraries and tools for SNAP";
 	@echo "* apps           Build the applications for all actions";
 	@echo "* clean          Remove all files generated in make process";
@@ -53,6 +54,11 @@ help:
 	@echo;
 	@echo "The hardware related targets 'model', 'image', 'hardware', 'hw_project' and 'sim'";
 	@echo "do only exist on an x86 platform";
+	@echo;
+	@echo "Few tools to help debug";
+	@echo "-----------------------";
+	@echo "* ./snap_trace         Display traces to debug action code";
+	@echo "* ./snap_debug_timing  Display timing failing paths when image generation fails";
 	@echo;
 
 ifeq ($(PLATFORM),x86_64)
@@ -99,7 +105,7 @@ $(hardware_subdirs): $(snap_env_sh)
 hardware: $(hardware_subdirs)
 
 # Model build and config
-hw_project model sim image cloud_enable cloud_base cloud_action: $(snap_env_sh)
+hw_project model sim image cloud_enable cloud_base cloud_action sim_tmux: $(snap_env_sh)
 	@for dir in $(hardware_subdirs); do                \
 	    if [ -d $$dir ]; then                          \
 	        $(MAKE) -s -C $$dir $@ || exit 1;          \
@@ -142,10 +148,16 @@ snap_config:
 	@$(MAKE) -s menuconfig || exit 1
 	@$(MAKE) -s snap_env snap_env_parm=config
 	@echo "SNAP config done"
+	@echo "-----------"
+	@echo "  Suggested next step: to run a simulation,      execute: make sim"
+	@echo "                    or to build the FPGA binary, execute: make image"
 
 $(snap_config_sh):
 	@$(MAKE) -s menuconfig || exit 1
 	@echo "SNAP config done"
+	@echo "-----------"
+	@echo "  Suggested next step: to run a simulation,      execute: make sim"
+	@echo "                    or to build the FPGA binary, execute: make image"
 
 # Prepare SNAP Environment
 $(snap_env_sh) snap_env: $(snap_config_sh)

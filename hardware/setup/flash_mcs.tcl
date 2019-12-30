@@ -77,11 +77,15 @@ switch $fpgacard {
           set fpgapartnum xcku15p
           set rs_pins	{26:25}
         }
-  AD9V3 { set flashdevice mt25qu256aba8e12-1sit
+  AD9V3 { set flashdevice mt25qu256-spi-x1_x2_x4_x8
           set fpgapartnum xcvu3p
         } 
+  AD9H3 { set flashdevice mt25qu01-spi-x1_x2_x4_x8  # to be corrected !!
+          set fpgapartnum xcvu33p
+        }
+
   default {
-    puts "Error: Environment FPGACARD must be set to N250S, ADKU3, AD8K5, S121B, RCXVUP, FX609, S241 or N250SP"
+    puts "Error: Environment FPGACARD must be set to N250S, ADKU3, AD8K5, S121B, N250SP, RCXVUP, FX609, S241, AD9V3 or AD9H3"
     exit 96
   }
 }
